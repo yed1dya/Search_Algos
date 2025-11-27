@@ -2,12 +2,14 @@ import java.util.ArrayList;
 
 public class Node {
 
-    private int x, y, cost;
+    private int x;
+    private int y;
+    private int cost;
     private Node parent;
     private String ID;
 
     public Node(int x, int y, int cost, Node parent){
-        this.x = x; this.y = y; this.parent = parent; this.cost = cost; this.c = c;
+        this.x = x; this.y = y; this.parent = parent; this.cost = cost;
         this.ID = "(" + x + "," + y + ")";
     }
 
@@ -22,4 +24,21 @@ public class Node {
     public int y(){
         return this.y;
     }
+
+    public Node getParent() {
+        return parent;
+    }
+
+    public void setParent(Node parent) {
+        this.parent = parent;
+    }
+
+    public int getCost() {
+        return cost;
+    }
+
+    public void setCost(int cost) {
+        this.cost = cost;
+    }
+
 }

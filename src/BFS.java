@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -32,7 +33,7 @@ public class BFS implements SearchAlgo{
         addToFrontier(start);
         while (!nextNodes.isEmpty()){
             Node current = removeFromFrontier();
-            Node[] adjacent = map.adjacents(current);
+            ArrayList<Node> adjacent = map.adjacents(current, clockwise);
         }
 
         return null;
