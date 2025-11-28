@@ -1,28 +1,28 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 
 public class Ex1 {
 
+    static String[] clockwiseOrder = {"R", "RD", "D", "LD", "L", "LU", "U", "RU", "Ent"},
+            counterClockwiseOrder = {"R", "RU", "U", "LU", "L", "LD", "D", "RD", "Ent"};
+
     public static void main(String[] args) {
-        runAlgo("input.txt");
+        runAlgo("input.txt", "output.txt");
     }
 
-    public static void runAlgo(String fileName){
+    public static void runAlgo(String inputFileName, String outputFileName){
         int rows, cols, startX = -1, startY = -1, goalX = -1, goalY = -1;
-        boolean clockwise, requiresOldFirst = false, oldFirst = false, withTime, withOpen;
+        boolean clockwise, oldFirst = false, withTime, withOpen;
         char[][] board;
         String algoName;
         Node start;
         Map map;
-        try(BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+        try(BufferedReader reader = new BufferedReader(new FileReader(inputFileName))) {
             algoName = reader.readLine();
             String[] lineArr = reader.readLine().split(" ");
             clockwise = lineArr[0].equals("clockwise");
             if (lineArr.length == 2) {
                 oldFirst = lineArr[1].equals("old-first");
-                requiresOldFirst = true;
             }
             withTime = reader.readLine().equals("with time");
             withOpen = reader.readLine().equals("with open");
@@ -53,29 +53,17 @@ public class Ex1 {
             }
             start = new Node(startX, startY, 0, null);
             map = new Map(board, tunnles, goalX, goalY);
+            String output = "";
+            switch (algoName){
+                case "BFS": output = new BFS(clockwise, withTime, withOpen, map, start).output();
+            }
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"))) {
+                writer.write(output);
+            } catch (IOException e) {
+                System.err.println("Error writing to file: " + e.getMessage());
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        System.out.println("algo: " + algoName);
-        System.out.println("clockwise: " + clockwise);
-        if (requiresOldFirst) System.out.println("old first: " + oldFirst);
-        System.out.println("with time: " + withTime);
-        System.out.println("with open: " + withOpen);
-        System.out.println("dimensions: " + rows + "x" + cols);
-        System.out.println("board:");
-        for (char[] row : board) {
-            for (char c : row) {
-                System.out.print(c);
-            }
-            System.out.println();
-        }
-
-        SearchAlgo algo;
-        switch (algoName){
-            case "BFS": {
-                algo = new BFS();
-            }
+            System.err.println("Error opening file: " + e.getMessage());
         }
     }
 }

@@ -7,10 +7,12 @@ public class Node {
     private int cost;
     private Node parent;
     private String ID;
+    private static int countCreatedNodes = 0;
 
     public Node(int x, int y, int cost, Node parent){
         this.x = x; this.y = y; this.parent = parent; this.cost = cost;
-        this.ID = "(" + x + "," + y + ")";
+        this.ID = x + "," + y;
+        countCreatedNodes++;
     }
 
     public String ID(){
@@ -39,6 +41,14 @@ public class Node {
 
     public void setCost(int cost) {
         this.cost = cost;
+    }
+
+    public String getPath(){
+        return "";
+    }
+
+    public static int numberOfNodesCreated(){
+        return countCreatedNodes;
     }
 
 }

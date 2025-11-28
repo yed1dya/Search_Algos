@@ -3,15 +3,37 @@ import java.util.Collections;
 
 public class Map {
     private char[][] board;
-    private int[][] tunnles;
+    private int[][] tunnels;
     private int goalX, goalY, width, height;
     private boolean supplied;
 
     public Map(char[][] board, int[][] tunnels, int goalX, int goalY){
-        this.board = board; this.tunnles = tunnels; this.goalX = goalX; this.goalY = goalY;
+        this.board = board; this.tunnels = tunnels; this.goalX = goalX; this.goalY = goalY;
         this.supplied = false;
         this.height = board.length;
         this.width = board[0].length;
+    }
+
+    /**
+     * Provides the character at a location on the map.
+     *
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @return The char at location x,y on the map.
+     */
+    public char charAt(int x, int y){
+        return board[y][x];
+    }
+
+    /**
+     * The goals function of the problem.
+     * In this problem, the goal is a specific x,y location.
+     *
+     * @param n A node to check.
+     * @return True iff the node is the location of the goal.
+     */
+    public boolean goal(Node n){
+        return n.x() == goalX && n.y() == goalY;
     }
 
     /**
@@ -42,12 +64,12 @@ public class Map {
      * @param clockwise Specifies which order to create the nodes.
      * @return An ArrayList of the adjacent nodes.
      */
-    public ArrayList<Node> adjacents(Node current, boolean clockwise){
-        ArrayList<Node> adjacents = new ArrayList<>(), middle = new ArrayList<>();
-        Node next = null;
+    public ArrayList<Node> adjacentNodes(Node current, boolean clockwise){
+        ArrayList<Node> adjacent = new ArrayList<>(), middle = new ArrayList<>();
+        Node next;
         // add right
         next = right(current);
-        if (next != null) adjacents.add(next);
+        if (next != null) adjacent.add(next);
         // build middle list:
         next = rightDown(current);
         if (next != null) middle.add(next);
@@ -66,11 +88,11 @@ public class Map {
         // if counter-clockwise, reverse it
         if (!clockwise) Collections.reverse(middle);
         // add middle list to adjacent list
-        adjacents.addAll(middle);
+        adjacent.addAll(middle);
         // add center
         next = enterTunnel(current);
-        if (next != null) adjacents.add(next);
-        return adjacents;
+        if (next != null) adjacent.add(next);
+        return adjacent;
     }
 
     /**
@@ -262,7 +284,7 @@ public class Map {
         char c = board[y][x];
         if (c >= '0' && c <= '9') {
             int number = Integer.parseInt("" + c);
-            int[] pair = tunnles[number];
+            int[] pair = tunnels[number];
             if (x == pair[0] && y == pair[1]){
                 x = pair[2]; y = pair[3];
             }
@@ -272,5 +294,19 @@ public class Map {
             next = moveTo(x, y, false, true, current);
         }
         return next;
+    }
+
+    public Node getDir(String dir, Node current){
+        return switch (dir) {
+            case "R" -> right(current);
+            case "RD" -> rightDown(current);
+            case "D" -> down(current);
+            case "LD" -> leftDown(current);
+            case "L" -> left(current);
+            case "LU" -> leftUp(current);
+            case "RU" -> rightUp(current);
+            case "Ent" -> enterTunnel(current);
+            default -> null;
+        };
     }
 }
