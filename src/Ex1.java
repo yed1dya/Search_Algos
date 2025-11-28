@@ -7,10 +7,10 @@ public class Ex1 {
             counterClockwiseOrder = {"R", "RU", "U", "LU", "L", "LD", "D", "RD", "Ent"};
 
     public static void main(String[] args) {
-        runAlgo("input.txt", "output.txt");
+        runAlgo("input.txt");
     }
 
-    public static void runAlgo(String inputFileName, String outputFileName){
+    public static void runAlgo(String inputFileName){
         int rows, cols, startX = -1, startY = -1, goalX = -1, goalY = -1;
         boolean clockwise, oldFirst = false, withTime, withOpen;
         char[][] board;
@@ -51,7 +51,7 @@ public class Ex1 {
                 row--;
                 line = reader.readLine();
             }
-            start = new Node(startX, startY, 0, null);
+            start = new Node(startX, startY, 0, "", null);
             map = new Map(board, tunnles, goalX, goalY);
             String output = "";
             switch (algoName){

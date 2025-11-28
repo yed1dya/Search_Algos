@@ -6,12 +6,12 @@ public class Node {
     private int y;
     private int cost;
     private Node parent;
-    private String ID;
+    private String ID, dir;
     private static int countCreatedNodes = 0;
 
-    public Node(int x, int y, int cost, Node parent){
+    public Node(int x, int y, int cost, String dir, Node parent){
         this.x = x; this.y = y; this.parent = parent; this.cost = cost;
-        this.ID = x + "," + y;
+        this.ID = x + "," + y; this.dir = dir;
         countCreatedNodes++;
     }
 
@@ -43,8 +43,19 @@ public class Node {
         this.cost = cost;
     }
 
+    public String getDir(){
+        return this.dir;
+    }
+
     public String getPath(){
-        return "";
+        StringBuilder path = new StringBuilder();
+        Node n = this;
+        if (this.parent != null) path.append(this.dir);
+        while (n.parent != null){
+            n = n.parent;
+            path.insert(0, n.dir + "-");
+        }
+        return path.substring(1);
     }
 
     public static int numberOfNodesCreated(){

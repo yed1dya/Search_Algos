@@ -1,6 +1,3 @@
-import java.util.ArrayList;
-import java.util.Collections;
-
 public class Map {
     private char[][] board;
     private int[][] tunnels;
@@ -58,44 +55,6 @@ public class Map {
     }
 
     /**
-     * Generates the legal adjacent nodes from the current node, in clockwise / counter-clockwise order.
-     *
-     * @param current The current node.
-     * @param clockwise Specifies which order to create the nodes.
-     * @return An ArrayList of the adjacent nodes.
-     */
-    public ArrayList<Node> adjacentNodes(Node current, boolean clockwise){
-        ArrayList<Node> adjacent = new ArrayList<>(), middle = new ArrayList<>();
-        Node next;
-        // add right
-        next = right(current);
-        if (next != null) adjacent.add(next);
-        // build middle list:
-        next = rightDown(current);
-        if (next != null) middle.add(next);
-        next = down(current);
-        if (next != null) middle.add(next);
-        next = leftDown(current);
-        if (next != null) middle.add(next);
-        next = left(current);
-        if (next != null) middle.add(next);
-        next = leftUp(current);
-        if (next != null) middle.add(next);
-        next = up(current);
-        if (next != null) middle.add(next);
-        next = rightUp(current);
-        if (next != null) middle.add(next);
-        // if counter-clockwise, reverse it
-        if (!clockwise) Collections.reverse(middle);
-        // add middle list to adjacent list
-        adjacent.addAll(middle);
-        // add center
-        next = enterTunnel(current);
-        if (next != null) adjacent.add(next);
-        return adjacent;
-    }
-
-    /**
      * The cost of moving to a space on the grid, defined by the contents of the space ONLY.
      * Does not account for diagonal movement or tunnels.
      *
@@ -126,11 +85,11 @@ public class Map {
      * @param current The current node.
      * @return The node after the specified movement, or null if move is illegal.
      */
-    private Node moveTo(int x, int y, boolean diagonal, boolean tunnel, Node current){
-        char c = board[y][x]; Node next = null;
+    private Node move(int x, int y, boolean diagonal, boolean tunnel, String dir, Node current){
+        char c = board[y][x]; Node next = null; int currentCost = current.getCost();
         if (c != '#' && (supplied || c != '~')){
-            int extraCost = (diagonal && c == '^') ? 5 : tunnel ? 1 : 0;
-            next = new Node(x, y, cost(x, y) + extraCost, current);
+            int extraCost = (diagonal && c == '^') ? 5 : (tunnel ? 1 : 0);
+            next = new Node(x, y, currentCost + cost(x, y) + extraCost, dir, current);
         }
         return next;
     }
@@ -144,10 +103,10 @@ public class Map {
      * @return The node after moving right, or null if move is illegal.
      */
     private Node right(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
-        if (x < width - 1){
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
+        if (x < width - 1 && !previousDir.equals("L")){
             x++;
-            next = moveTo(x, y, false, false, current);
+            next = move(x, y, false, false, "R", current);
         }
         return next;
     }
@@ -161,10 +120,10 @@ public class Map {
      * @return The node after moving right-down, or null if move is illegal.
      */
     private Node rightDown(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
-        if (x < width - 1 && y > 0){
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
+        if (x < width - 1 && y > 0 && !previousDir.equals("LU")){
             y--; x++;
-            next = moveTo(x, y, true, false, current);
+            next = move(x, y, true, false, "RD", current);
         }
         return next;
     }
@@ -178,10 +137,10 @@ public class Map {
      * @return The node after moving down, or null if move is illegal.
      */
     private Node down(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
-        if (y > 0){
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
+        if (y > 0 && !previousDir.equals("U")){
             y--;
-            next = moveTo(x, y, false, false, current);
+            next = move(x, y, false, false, "D", current);
         }
         return next;
     }
@@ -195,10 +154,10 @@ public class Map {
      * @return The node after moving left-down, or null if move is illegal.
      */
     private Node leftDown(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
-        if (x > 0 && y > 0){
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
+        if (x > 0 && y > 0 && !previousDir.equals("RU")){
             x--; y--;
-            next = moveTo(x, y, true, false, current);
+            next = move(x, y, true, false, "LD", current);
         }
         return next;
     }
@@ -212,10 +171,10 @@ public class Map {
      * @return The node after moving left, or null if move is illegal.
      */
     private Node left(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
-        if (x > 0){
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
+        if (x > 0 && !previousDir.equals("R")){
             x--;
-            next = moveTo(x, y, false, false, current);
+            next = move(x, y, false, false, "L", current);
         }
         return next;
     }
@@ -229,10 +188,10 @@ public class Map {
      * @return The node after moving left-up, or null if move is illegal.
      */
     private Node leftUp(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
-        if (x > 0 && y < height - 1){
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
+        if (x > 0 && y < height - 1 && !previousDir.equals("RD")){
             x--; y++;
-            next = moveTo(x, y, true, false, current);
+            next = move(x, y, true, false, "LU", current);
         }
         return next;
     }
@@ -246,10 +205,10 @@ public class Map {
      * @return The node after moving up, or null if move is illegal.
      */
     private Node up(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
-        if (y < height - 1){
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
+        if (y < height - 1 && !previousDir.equals("D")){
             y++;
-            next = moveTo(x, y, false, false, current);
+            next = move(x, y, false, false, "U", current);
         }
         return next;
     }
@@ -263,10 +222,10 @@ public class Map {
      * @return The node after moving right-up, or null if move is illegal.
      */
     private Node rightUp(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
-        if (x < width - 1 && y < height - 1){
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
+        if (x < width - 1 && y < height - 1 && !previousDir.equals("LD")){
             x++; y++;
-            next = moveTo(x, y, true, false, current);
+            next = move(x, y, true, false, "RU", current);
         }
         return next;
     }
@@ -280,9 +239,9 @@ public class Map {
      * @return The node after moving enter-tunnel, or null if move is illegal.
      */
     private Node enterTunnel(Node current){
-        int x = current.x(), y = current.y(); Node next = null;
+        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
         char c = board[y][x];
-        if (c >= '0' && c <= '9') {
+        if (c >= '0' && c <= '9' && !previousDir.equals("Ent")) {
             int number = Integer.parseInt("" + c);
             int[] pair = tunnels[number];
             if (x == pair[0] && y == pair[1]){
@@ -291,12 +250,12 @@ public class Map {
             else if (x == pair[2] && y == pair[3]) {
                 x = pair[0]; y = pair[1];
             }
-            next = moveTo(x, y, false, true, current);
+            next = move(x, y, false, true, "Ent", current);
         }
         return next;
     }
 
-    public Node getDir(String dir, Node current){
+    public Node moveToDir(String dir, Node current){
         return switch (dir) {
             case "R" -> right(current);
             case "RD" -> rightDown(current);
@@ -304,6 +263,7 @@ public class Map {
             case "LD" -> leftDown(current);
             case "L" -> left(current);
             case "LU" -> leftUp(current);
+            case "U" -> up(current);
             case "RU" -> rightUp(current);
             case "Ent" -> enterTunnel(current);
             default -> null;

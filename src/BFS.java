@@ -3,8 +3,8 @@ import java.util.*;
 public class BFS{
 
     private ArrayDeque<Node> nextNodes = new ArrayDeque<>();  // L, the queue (frontier)
-    private HashSet<Node> openList = new HashSet<>();  // L, the open list (frontier)
-    private HashSet<Node> closedList = new HashSet<>();  // C, the closed list (explored set)
+    private HashMap<String, Node> openList = new HashMap();  // L, the open list (frontier)
+    private HashMap<String, Node> closedList = new HashMap<>();  // C, the closed list (explored set)
     private boolean clockwise;
     private boolean withTime;
     private boolean withOpen;
@@ -39,13 +39,14 @@ public class BFS{
         while (!nextNodes.isEmpty()){  // while queue is not empty
             if (withOpen) printOpenList();
             Node current = removeFromOpenList();  // remove head node from queue, denote it 'current'
-            closedList.add(current);  // add 'current' tp closed list
+            closedList.put(current.ID(), current);  // add 'current' tp closed list
             Node next;
             if (clockwise){
                 for (String dir : Ex1.clockwiseOrder){  // for every legal neighbor of 'current':
-                    next = map.getDir(dir, current);  // create neighbor
+                    next = map.moveToDir(dir, current);  // create neighbor
+                    if (next == null) continue;
                     // check that neighbor isn't in the open or closed list
-                    if (!openList.contains(next) && !closedList.contains(next)){
+                    if (!openList.containsKey(next.ID()) && !closedList.containsKey(next.ID())){
                         if (map.goal(next)){
                             cost = next.getCost();
                             return next.getPath();
@@ -56,9 +57,9 @@ public class BFS{
             }
             else{
                 for (String dir : Ex1.counterClockwiseOrder){
-                    next = map.getDir(dir, current);
-                    // check that neighbor isn't in the open or closed list
-                    if (!openList.contains(next) && !closedList.contains(next)){
+                    next = map.moveToDir(dir, current);
+                    if (next == null) continue;
+                    if (!openList.containsKey(next.ID()) && !closedList.containsKey(next.ID())){
                         if (map.goal(next)){
                             cost = next.getCost();
                             return next.getPath();
@@ -93,11 +94,12 @@ public class BFS{
         for (Node n : nextNodes){
             System.out.print("[" + n.ID() + " | " + map.charAt(n.x(), n.y()) + " | cost: " + n.getCost() + "]");
         }
+        System.out.println();
     }
 
     private void addToOpenList(Node n){
         nextNodes.add(n);
-        openList.add(n);
+        openList.put(n.ID(), n);
         maxSizeOfOpenList = Math.max(maxSizeOfOpenList, openList.size());
     }
 
