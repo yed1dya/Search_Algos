@@ -13,6 +13,7 @@ public class Node {
         this.x = x; this.y = y; this.parent = parent; this.cost = cost;
         this.ID = x + "," + y; this.dir = dir;
         countCreatedNodes++;
+        System.out.println(countCreatedNodes + "   " + dir + " (" + this.ID + ")");
     }
 
     public String ID(){
@@ -60,6 +61,11 @@ public class Node {
 
     public static int numberOfNodesCreated(){
         return countCreatedNodes;
+    }
+
+    @Override
+    public String toString(){
+        return this.ID;
     }
 
 }

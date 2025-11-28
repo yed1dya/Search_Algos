@@ -1,10 +1,10 @@
 import java.util.*;
 
-public class BFS{
+public class BFS implements SearchAlgo{
 
     private ArrayDeque<Node> nextNodes = new ArrayDeque<>();  // L, the queue (frontier)
-    private HashMap<String, Node> openList = new HashMap();  // L, the open list (frontier)
-    private HashMap<String, Node> closedList = new HashMap<>();  // C, the closed list (explored set)
+    private HashSet<String> openList = new HashSet<>();  // L, the open list (frontier)
+    private HashSet<String> closedList = new HashSet<>();  // C, the closed list (explored set)
     private boolean clockwise;
     private boolean withTime;
     private boolean withOpen;
@@ -34,44 +34,56 @@ public class BFS{
      *
      * @return A string to write to output.txt (see assignment instruction).
      */
-    public String findPath() {
-        addToOpenList(start);  // add start node to queue
-        while (!nextNodes.isEmpty()){  // while queue is not empty
+    private String findPath() {
+        addToOpenList(start);  // add start node to queue.
+        while (!nextNodes.isEmpty()){  // while queue is not empty.
             if (withOpen) printOpenList();
-            Node current = removeFromOpenList();  // remove head node from queue, denote it 'current'
-            closedList.put(current.ID(), current);  // add 'current' tp closed list
-            Node next;
+            Node current = removeFromOpenList();  // remove head node from queue, denote it 'current'.
+            if (current == null) return "no path";
+            addToClosedList(current);  // add 'current' to closed list.
+            if (withOpen) {
+                System.out.println("expanding (" + current.ID() + "), got here by moving: " + current.getDir());
+            }
             if (clockwise){
                 for (String dir : Ex1.clockwiseOrder){  // for every legal neighbor of 'current':
-                    next = map.moveToDir(dir, current);  // create neighbor
-                    if (next == null) continue;
-                    // check that neighbor isn't in the open or closed list
-                    if (!openList.containsKey(next.ID()) && !closedList.containsKey(next.ID())){
-                        if (map.goal(next)){
-                            cost = next.getCost();
-                            return next.getPath();
-                        }
-                        else addToOpenList(next);
-                    }
+                    String path = expandTo(current, dir);  // attempt to expand (further checks will happen).
+                    if (path != null) return path;  // if a path to goal was found, return it.
                 }
             }
             else{
                 for (String dir : Ex1.counterClockwiseOrder){
-                    next = map.moveToDir(dir, current);
-                    if (next == null) continue;
-                    if (!openList.containsKey(next.ID()) && !closedList.containsKey(next.ID())){
-                        if (map.goal(next)){
-                            cost = next.getCost();
-                            return next.getPath();
-                        }
-                        else addToOpenList(next);
-                    }
+                    String path = expandTo(current, dir);
+                    if (path != null) return path;
                 }
             }
         }
+        return "no path";
+    }
+
+    private String expandTo(Node n, String dir){
+        Node next = map.moveToDir(dir, n, this);  // attempt to create neighbor (further checks will happen).
+        if (next == null) return null;
+        if (map.goal(next)) return foundGoal(next);
+        else addToOpenList(next);
         return null;
     }
 
+    @Override
+    public boolean inClosedList(int x, int y){
+        return closedList.contains(x + "," + y);
+    }
+
+    @Override
+    public boolean inOpenList(int x, int y){
+        return openList.contains(x + "," + y);
+    }
+
+    private String foundGoal(Node n){
+        cost = n.getCost();
+        return n.getPath();
+    }
+
+    @Override
     public String output(){
         StringBuilder output = new StringBuilder();
         long startTime = 0;
@@ -81,7 +93,9 @@ public class BFS{
         output.append(path).append('\n');
         output.append("Num: ").append(Node.numberOfNodesCreated()).append('\n');
         output.append("Max space: ").append(maxSizeOfOpenList).append('\n');
-        output.append("Cost: ").append(cost);
+        output.append("Cost: ");
+        if (path.equals("no path")) output.append("inf");
+        else output.append(cost);
         if (withTime){
             double durationSeconds = (double) (endTime - startTime) / 1_000_000_000.0;
             String formattedTime = String.format("%.3f", durationSeconds);
@@ -92,21 +106,26 @@ public class BFS{
 
     private void printOpenList(){
         for (Node n : nextNodes){
-            System.out.print("[" + n.ID() + " | " + map.charAt(n.x(), n.y()) + " | cost: " + n.getCost() + "]");
+            System.out.print("[" + n.ID() + " | " + map.charAt(n.x(), n.y())
+                    + " | cost: " + n.getCost() + " | " + n.getParent() + "]  ");
         }
         System.out.println();
     }
 
+    private void addToClosedList(Node n){
+        closedList.add(n.ID());
+    }
+
     private void addToOpenList(Node n){
         nextNodes.add(n);
-        openList.put(n.ID(), n);
+        openList.add(n.ID());
         maxSizeOfOpenList = Math.max(maxSizeOfOpenList, openList.size());
     }
 
     private Node removeFromOpenList(){
         Node n = nextNodes.poll();
         if (n == null) return null;
-        openList.remove(n);
+        openList.remove(n.ID());
         return n;
     }
 }

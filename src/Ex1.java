@@ -53,10 +53,13 @@ public class Ex1 {
             }
             start = new Node(startX, startY, 0, "", null);
             map = new Map(board, tunnles, goalX, goalY);
+            SearchAlgo algo = switch (algoName) {
+                case "BFS" -> new BFS(clockwise, withTime, withOpen, map, start);
+                case "DFID" -> new DFID();
+                default -> null;
+            };
             String output = "";
-            switch (algoName){
-                case "BFS": output = new BFS(clockwise, withTime, withOpen, map, start).output();
-            }
+            if (algo != null) output = algo.output();
             try (BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"))) {
                 writer.write(output);
             } catch (IOException e) {

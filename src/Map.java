@@ -3,12 +3,11 @@ public class Map {
     private int[][] tunnels;
     private int goalX, goalY, width, height;
     private boolean supplied;
+    private SearchAlgo algo;
 
     public Map(char[][] board, int[][] tunnels, int goalX, int goalY){
         this.board = board; this.tunnels = tunnels; this.goalX = goalX; this.goalY = goalY;
-        this.supplied = false;
-        this.height = board.length;
-        this.width = board[0].length;
+        this.supplied = false; this.height = board.length; this.width = board[0].length;
     }
 
     /**
@@ -86,10 +85,13 @@ public class Map {
      * @return The node after the specified movement, or null if move is illegal.
      */
     private Node move(int x, int y, boolean diagonal, boolean tunnel, String dir, Node current){
-        char c = board[y][x]; Node next = null; int currentCost = current.getCost();
-        if (c != '#' && (supplied || c != '~')){
-            int extraCost = (diagonal && c == '^') ? 5 : (tunnel ? 1 : 0);
-            next = new Node(x, y, currentCost + cost(x, y) + extraCost, dir, current);
+        Node next = null;
+        if (!algo.inClosedList(x, y) && !algo.inOpenList(x, y)) {
+            char c = board[y][x]; int currentCost = current.getCost();
+            if (c != '#' && (supplied || c != '~')) {
+                int extraCost = (diagonal && c == '^') ? 5 : (tunnel ? 1 : 0);
+                next = new Node(x, y, currentCost + cost(x, y) + extraCost, dir, current);
+            }
         }
         return next;
     }
@@ -255,7 +257,8 @@ public class Map {
         return next;
     }
 
-    public Node moveToDir(String dir, Node current){
+    public Node moveToDir(String dir, Node current, SearchAlgo algo){
+        this.algo = algo;
         return switch (dir) {
             case "R" -> right(current);
             case "RD" -> rightDown(current);
