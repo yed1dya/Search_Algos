@@ -1,5 +1,3 @@
-import java.util.Arrays;
-
 public class Node {
 
     private int x;
