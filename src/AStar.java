@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.PriorityQueue;
 
 public class AStar extends SearchAlgo{
@@ -53,9 +54,9 @@ public class AStar extends SearchAlgo{
             }
             addToClosedList(current);
             if (clockwise) {
-                for (String dir : Ex1.clockwiseOrder) checkDir(current, dir);
+                for (int[] dir : Ex1.clockwiseOrder) checkDir(current, dir);
             } else {
-                for (String dir : Ex1.counterClockwiseOrder) checkDir(current, dir);
+                for (int[] dir : Ex1.counterClockwiseOrder) checkDir(current, dir);
             }
         }
         return "no path";
@@ -70,20 +71,22 @@ public class AStar extends SearchAlgo{
      * @param current Current node.
      * @param dir Direction to move in.
      */
-    private void checkDir(Node current, String dir){
+    private void checkDir(Node current, int[] dir){
         int[] checkNext = map.checkMove(current, dir);
         if (checkNext == null) return;
         int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + current.getCost();
+        char ch = (char)checkNext[3];
         if (notInClosedList(nx, ny) && !inOpenList(nx, ny)){
-            addToOpenList(new Node(nx, ny, cost, dir, current, map));
+            addToOpenList(new Node(nx, ny, cost, map.f(nx, ny, cost), ch, dir, current));
         }
         else if (inOpenList(nx, ny)){
             Node oldNext = getFromOpenList(nx, ny);
-            int oldCost = oldNext.getCost();
-            if (oldCost > cost){
+            int oldF = map.f(oldNext), newF = map.f(nx, ny, cost);
+            if (newF < oldF){
                 oldNext.setParent(current);
                 oldNext.setCost(cost);
                 oldNext.setDir(dir);
+                oldNext.setSupplied(ch == '*' || current.isSupplied());
             }
         }
     }
@@ -131,9 +134,10 @@ public class AStar extends SearchAlgo{
      */
     @Override
     protected void printOpenList() {
-        System.out.print(priorityQueue.size());
-        for (Node n : priorityQueue){
-            System.out.print("  " + n.toString());
+        PriorityQueue<Node> tempPQ = new PriorityQueue<>(priorityQueue);
+        System.out.print(tempPQ.size());
+        while (!tempPQ.isEmpty()) {
+            System.out.print("  " + tempPQ.poll().toString());
         }
         System.out.println();
     }

@@ -45,12 +45,14 @@ public abstract class SearchAlgo {
      * @param dir Direction to expand in.
      * @return Path to goal, if found. Else, null.
      */
-    protected String expandTo(Node n, String dir){
-        int[] checkNext = map.checkMove(n, dir);  // check neighbor.
+    protected String expandTo(Node n, int[] dir){
+        int[] checkNext = map.checkMove(n, dir);
         if (checkNext == null) return null;
         int x = checkNext[0], y = checkNext[1], cost = checkNext[2];
+        char ch = (char)checkNext[3];
         if (notInClosedList(x, y) && !inOpenList(x, y)){
-            Node next = new Node(x, y, cost + n.getCost(), dir, n, map);
+            cost += n.getCost();
+            Node next = new Node(x, y, cost, map.f(x, y, cost), ch, dir, n);
             if (map.goal(next)) return getPath(next);
             else addToOpenList(next);
         }

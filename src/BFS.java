@@ -2,7 +2,7 @@ import java.util.*;
 
 public class BFS extends SearchAlgo{
 
-    private ArrayDeque<Node> queue = new ArrayDeque<>();  // L, the queue (frontier)
+    private ArrayDeque<Node> queue = new ArrayDeque<>();  // the open list (frontier), a queue
 
     /**
      * Constructor.
@@ -34,12 +34,12 @@ public class BFS extends SearchAlgo{
             if (current == null) return "no path";
             addToClosedList(current);
             if (clockwise) {
-                for (String dir : Ex1.clockwiseOrder) {
+                for (int[] dir : Ex1.clockwiseOrder) {
                     String path = expandTo(current, dir);
                     if (path != null) return path;
                 }
             } else {
-                for (String dir : Ex1.counterClockwiseOrder) {
+                for (int[] dir : Ex1.counterClockwiseOrder) {
                     String path = expandTo(current, dir);
                     if (path != null) return path;
                 }

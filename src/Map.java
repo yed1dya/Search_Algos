@@ -2,23 +2,10 @@ public class Map {
 
     private char[][] board;
     private int[][] tunnels;
-    private int goalX, goalY, width, height;
-    private boolean supplied;
+    private int goalX, goalY;
 
     protected Map(char[][] board, int[][] tunnels, int goalX, int goalY){
         this.board = board; this.tunnels = tunnels; this.goalX = goalX; this.goalY = goalY;
-        this.supplied = false; this.height = board.length; this.width = board[0].length;
-    }
-
-    /**
-     * Provides the character at a location on the map.
-     *
-     * @param x x-coordinate.
-     * @param y y-coordinate.
-     * @return The char at location x,y on the map.
-     */
-    protected char charAt(int x, int y){
-        return board[y][x];
     }
 
     /**
@@ -33,14 +20,49 @@ public class Map {
     }
 
     /**
-     * The heuristic function we use - Manhattan distance.
+     * Helper function - manhattan distance.
      *
-     * @param n A node.
-     * @return The heuristic of the given node.
+     * @param x1 x-coordinate of point 1.
+     * @param y1 y-coordinate of point 1.
+     * @param x2 x-coordinate of point 2.
+     * @param y2 y-coordinate of point 2.
+     * @return The manhattan distance between the points.
      */
-    protected int heuristic(Node n){
-        int x = n.x(), y = n.y();
-        return Math.abs(x - goalX) + Math.abs(y - goalY);
+    private int manhattan(int x1, int y1, int x2, int y2) {
+        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    }
+
+    /**
+     * Helper function - "tunnel distance".
+     * Iterates over all tunnel entrances,
+     * returns the manhattan distance from x,y to the closest one.
+     *
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @return The manhattan distance from point to the closest tunnel
+     */
+    private int tunnelDistance(int x, int y){
+        int distance = Integer.MAX_VALUE;
+        for (int[] tunnel : tunnels){
+            int closestTunnel = Math.min(manhattan(x, y, tunnel[0], tunnel[1]),
+                    manhattan(x, y, tunnel[2], tunnel[3]));
+            distance = Math.min(distance, closestTunnel);
+        }
+        return distance;
+    }
+
+    /**
+     * The heuristic function.
+     * Minimum of:
+     * manhattan distance to goal, and
+     * manhattan distance to the closest tunnel entrance + 2.
+     *
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @return The heuristic of the given location.
+     */
+    protected int heuristic(int x, int y){
+        return Math.min(manhattan(x, y, goalX, goalY), tunnelDistance(x, y));
     }
 
     /**
@@ -50,7 +72,19 @@ public class Map {
      * @return The f(n) value of n.
      */
     protected int f(Node n){
-        return n.getCost() + heuristic(n);
+        return f(n.x(), n.y(), n.getCost());
+    }
+
+    /**
+     * The 'f' function for the informed searches.
+     *
+     * @param x x-coordinate
+     * @param y y-coordinate
+     * @param cost Current cost.
+     * @return The f(n) value of the location with the given cost.
+     */
+    protected int f(int x, int y, int cost){
+        return cost + heuristic(x, y);
     }
 
     /**
@@ -61,81 +95,70 @@ public class Map {
      * @param y y-coordinate of space.
      * @return The cost of that space.
      */
-    private int cost(int x, int y, boolean diagonal){
-        char c = board[y][x];
-        switch (c){
+    private int cost(int x, int y, boolean diagonal, boolean supplied){
+        char ch = board[y][x];
+        switch (ch){
             case '#': return -1;
             case '-', '*', 'S': return 1;
             case '^': return diagonal ? 10 : 5;
             case 'G': return 5;
-            case '~': return 3;
+            case '~': {
+                if (supplied) return 3;
+                else return -1;
+            }
         }
-        if (c >= '0' && c <= '9') return 1;
+        if (ch >= '0' && ch <= '9') return 1;
         return -1;
+    }
+
+    /**
+     * Helper function for "Ent" direction.
+     * Checks if space is a tunnel, and finds the other side.
+     *
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @param previousDir The previous direction.
+     * @return [new x, new y, cost of move, tunnel number] if valid, else null.
+     */
+    private int[] enterTunnel(int x, int y, int[] previousDir){
+        char ch = board[y][x];
+        if (ch >= '0' && ch <= '9' && previousDir.length != 0) {
+            int number = Integer.parseInt(String.valueOf(ch));
+            int[] pair = tunnels[number];
+            if (x == pair[0] && y == pair[1]) {
+                return new int[]{pair[2], pair[3], 2, ch};
+            }
+            if (x == pair[2] && y == pair[3]) {
+                return new int[]{pair[0], pair[1], 2, ch};
+            }
+        }
+        return null;
     }
 
     /**
      * Returns the coordinates after move in requested direction, and the cost.
      * Checks if move is legal: no walls, smooth floor requires being supplied,
-     * no going back in opposite of previous direction.
-     * If move is illegal, returns null
+     * no going back in opposite of previous direction (unless supplying).
+     * If move is illegal, returns null.
      *
-     * @return An int array [new x, new y, cost]
+     * @return An int array [new x, new y, cost of move, char in next spot] if valid, else null.
      */
-    protected int[] checkMove(Node current, String dir){
+    protected int[] checkMove(Node current, int[] dir){
         int x = current.x(), y = current.y();
-        String previousDir = current.getDir();
-        switch (dir){
-            case "R": {
-                if (x < width - 1 && !previousDir.equals("L")) x++;
-                break;
-            }
-            case "RD": {
-                if (x < width - 1 && y > 0 && !previousDir.equals("LU")){ y--; x++; }
-                break;
-            }
-            case "D": {
-                if (y > 0 && !previousDir.equals("U")) y--;
-                break;
-            }
-            case "LD": {
-                if (x > 0 && y > 0 && !previousDir.equals("RU")){ x--; y--; }
-                break;
-            }
-            case "L": {
-                if (x > 0 && !previousDir.equals("R")) x--;
-                break;
-            }
-            case "LU": {
-                if (x > 0 && y < height - 1 && !previousDir.equals("RD")){ x--; y++; }
-                break;
-            }
-            case "U": {
-                if (y < height - 1 && !previousDir.equals("D")) y++;
-                break;
-            }
-            case "RU": {
-                if (x < width - 1 && y < height - 1 && !previousDir.equals("LD")){ x++; y++; }
-                break;
-            }
-            case "Ent": {
-                char c = board[y][x];
-                if (c >= '0' && c <= '9' && !previousDir.equals("Ent")) {
-                    int number = Integer.parseInt(String.valueOf(c));
-                    int[] pair = tunnels[number];
-                    if (x == pair[0] && y == pair[1]) {
-                        return new int[]{pair[2], pair[3], 2};
-                    }
-                    if (x == pair[2] && y == pair[3]) {
-                        return new int[]{pair[0], pair[1], 2};
-                    }
-                } break;
-            }
-            default: return null;
+        int[] previousDir = current.getDir();
+        if (dir.length == 0) return enterTunnel(x, y, previousDir);
+        x += dir[0]; y += dir[1];
+        if (x < 0 || y < 0 || y >= board.length || x >= board[0].length) return null;
+        char ch = board[y][x];
+        if (ch != '*' && previousDir.length != 0){
+            int xMoved = previousDir[0] + dir[0], yMoved = previousDir[1] + dir[1];
+            if (xMoved == 0 && yMoved == 0) return null;
         }
-        char c = board[y][x];
-        if (c != '#' && (supplied || c != '~')) {
-            return new int[]{x, y, cost(x, y, dir.length() == 2)};
+        boolean supplied = current.isSupplied(),
+                diagonal = dir[0] != 0 && dir[1] != 0;
+        int cost = cost(x, y, diagonal, supplied);
+        if (ch != '#' && (supplied || ch != '~') && cost != -1) {
+            return new int[]{x, y, cost, ch};
         }
         return null;
     }

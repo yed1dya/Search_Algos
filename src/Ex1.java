@@ -3,8 +3,10 @@ import java.util.Arrays;
 
 public class Ex1 {
 
-    protected static String[] clockwiseOrder = {"R", "RD", "D", "LD", "L", "LU", "U", "RU", "Ent"},
-            counterClockwiseOrder = {"R", "RU", "U", "LU", "L", "LD", "D", "RD", "Ent"};
+    // {"R", "RD", "D", "LD", "L", "LU", "U", "RU", "Ent"}
+    protected static int[][] clockwiseOrder = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {}},
+            counterClockwiseOrder = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {}};
+    //{"R", "RU", "U", "LU", "L", "LD", "D", "RD", "Ent"};
 
     public static void main(String[] args) {
         runAlgo();
@@ -51,8 +53,8 @@ public class Ex1 {
                 row--;
                 line = reader.readLine();
             }
-            start = new Node(startX, startY, 0, 'S', "", null);
             map = new Map(board, tunnels, goalX, goalY);
+            start = new Node(startX, startY, 0, map.f(startX, startY, 0), 'S', new int[]{0, 0}, null);
             SearchAlgo algo = switch (algoName) {
                 case "BFS" -> new BFS(clockwise, withTime, withOpen, map, start);
                 case "A*" -> new AStar(clockwise, withTime, withOpen, oldFirst, map, start);

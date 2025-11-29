@@ -1,12 +1,17 @@
+import java.util.Arrays;
+
 public class Node {
 
     private int x;
     private int y;
     private int cost;
+    private int f;
     private int serialNumber;
+    private int[] dir;
     private Node parent;
-    private String ID, dir;
-    private char c;
+    private String ID;
+    private char ch;
+    private boolean supplied;
     private static int countCreatedNodes = 0;
 
     /**
@@ -19,26 +24,12 @@ public class Node {
      * @param dir The direction of movement that produced the node.
      * @param parent The previous node.
      */
-    protected Node(int x, int y, int cost, char c, String dir, Node parent){
+    protected Node(int x, int y, int cost, int f, char c, int[] dir, Node parent){
         this.x = x; this.y = y; this.parent = parent; this.cost = cost;
-        this.ID = x + "," + y; this.dir = dir; this.c = c;
+        this.ID = x + "," + y; this.dir = dir; this.ch = c; this.f = f;
+        this.supplied = (c == '*' || (parent != null && parent.supplied));
         countCreatedNodes++;
         this.serialNumber = countCreatedNodes;
-    }
-
-    /**
-     * Constructor (if the char at the node is unknown).
-     * Gets the char from the map.
-     *
-     * @param x x-coordinate.
-     * @param y y-coordinate.
-     * @param cost The cost of reaching the node (from start).
-     * @param dir The direction of movement that produced the node.
-     * @param parent The previous node.
-     * @param map The map that the node is on.
-     */
-    protected Node (int x, int y, int cost, String dir, Node parent, Map map){
-        this(x, y, cost, map.charAt(x, y), dir, parent);
     }
 
     protected String ID(){
@@ -55,6 +46,7 @@ public class Node {
 
     protected void setParent(Node parent) {
         this.parent = parent;
+        this.supplied = parent.supplied;
     }
 
     protected int getCost() {
@@ -65,21 +57,29 @@ public class Node {
         this.cost = cost;
     }
 
-    protected String getDir(){
+    protected int[] getDir(){
         return this.dir;
     }
 
-    protected void setDir(String dir){
+    protected void setDir(int[] dir){
         this.dir = dir;
+    }
+
+    protected boolean isSupplied(){
+        return this.supplied;
+    }
+
+    protected void setSupplied(boolean supplied){
+        this.supplied = supplied;
     }
 
     protected String getPath(){
         StringBuilder path = new StringBuilder();
         Node n = this;
-        if (this.parent != null) path.append(this.dir);
+        if (this.parent != null) path.append(dirName(this.dir));
         while (n.parent != null){
             n = n.parent;
-            path.insert(0, n.dir + "-");
+            path.insert(0,"-" + dirName(this.dir));
         }
         return path.substring(1);
     }
@@ -92,9 +92,22 @@ public class Node {
         return this.serialNumber;
     }
 
+    private String dirName(int[] dir){
+        System.out.println(Arrays.toString(dir));
+        if (dir.length == 0) return "Ent";
+        StringBuilder sb = new StringBuilder();
+        if (dir[0] == 1) sb.append("R");
+        if (dir[0] == -1) sb.append("L");
+        if (dir[1] == 1) sb.append("U");
+        if (dir[1] == -1) sb.append("D");
+        return sb.toString();
+    }
+
     @Override
     public String toString(){
-        StringBuilder s = new StringBuilder("[" + this.ID + " | " + this.c + " | " + this.cost + " | ");
+        StringBuilder s = new StringBuilder("[" + this.ID + " | " + this.ch + " | " + this.f + " | ");
+        if (supplied) s.append("sup | ");
+        else s.append("not | ");
         if (parent != null) s.append(parent.ID);
         else s.append("null");
         s.append("]");
