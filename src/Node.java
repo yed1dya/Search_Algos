@@ -24,8 +24,9 @@ public class Node {
      */
     protected Node(int x, int y, int cost, int f, char c, int[] dir, Node parent){
         this.x = x; this.y = y; this.parent = parent; this.cost = cost;
-        this.ID = x + "," + y; this.dir = dir; this.ch = c; this.f = f;
+        this.dir = dir; this.ch = c; this.f = f;
         this.supplied = (c == '*' || (parent != null && parent.supplied));
+        this.ID = x + "," + y + "," + this.supplied;
         countCreatedNodes++;
         this.serialNumber = countCreatedNodes;
     }
@@ -101,10 +102,17 @@ public class Node {
 
     @Override
     public String toString(){
-        StringBuilder s = new StringBuilder("[" + this.ID + " | " + this.ch + " | " + this.cost +  " | " + this.f + " | ");
-        if (supplied) s.append("sup | ");
-        else s.append("not | ");
-        if (parent != null) s.append(parent.ID);
+        StringBuilder s = new StringBuilder("[" + this.x + "," + this.y);
+        s.append(" | ").append(this.ch);
+        s.append(" | ").append(this.cost);
+        s.append(" | ").append(this.f);
+        if (supplied) s.append(" | sup | ");
+        else s.append(" | not | ");
+        if (parent != null){
+            s.append(parent.x).append(",").append(parent.y).append(", ");
+            if (parent.supplied) s.append("sup");
+            else s.append("not");
+        }
         else s.append("null");
         s.append("]");
         return s.toString();

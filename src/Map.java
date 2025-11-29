@@ -62,7 +62,7 @@ public class Map {
      * @return The heuristic of the given location.
      */
     protected int heuristic(int x, int y){
-        return Math.min(chebyshev(x, y, goalX, goalY), tunnelDistance(x, y));
+        return Math.min(chebyshev(x, y, goalX, goalY), tunnelDistance(x, y) + 2);
     }
 
     /**

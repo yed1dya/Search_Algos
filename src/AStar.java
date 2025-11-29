@@ -75,18 +75,19 @@ public class AStar extends SearchAlgo{
         if (checkNext == null) return;
         int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + current.getCost();
         char ch = (char)checkNext[3];
-        if (notInClosedList(nx, ny) && !inOpenList(nx, ny)){
+        boolean supplied = current.isSupplied() || ch == '*';
+        if (notInClosedList(nx, ny, supplied) && !inOpenList(nx, ny, supplied)){
             addToOpenList(new Node(nx, ny, cost, map.f(nx, ny, cost), ch, dir, current));
         }
-        else if (inOpenList(nx, ny)){
-            Node oldNext = getFromOpenList(nx, ny);
+        else if (inOpenList(nx, ny, supplied)){
+            Node oldNext = getFromOpenList(nx, ny, supplied);
             int oldF = map.f(oldNext), newF = map.f(nx, ny, cost);
             if (newF < oldF){
                 priorityQueue.remove(oldNext);
                 oldNext.setParent(current);
                 oldNext.setCost(cost);
                 oldNext.setDir(dir);
-                oldNext.setSupplied(ch == '*' || current.isSupplied());
+                oldNext.setSupplied(supplied);
                 priorityQueue.add(oldNext);
             }
         }
@@ -125,8 +126,8 @@ public class AStar extends SearchAlgo{
      * @param y y-coordinate.
      * @return The requested node.
      */
-    protected Node getFromOpenList(int x, int y){
-        return openList.get(x + "," + y);
+    protected Node getFromOpenList(int x, int y, boolean supplied){
+        return openList.get(x + "," + y + "," + supplied);
     }
 
     /**

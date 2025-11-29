@@ -50,7 +50,7 @@ public abstract class SearchAlgo {
         if (checkNext == null) return null;
         int x = checkNext[0], y = checkNext[1], cost = checkNext[2];
         char ch = (char)checkNext[3];
-        if (notInClosedList(x, y) && !inOpenList(x, y)){
+        if (notInClosedList(x, y, n.isSupplied()) && !inOpenList(x, y, n.isSupplied())){
             cost += n.getCost();
             Node next = new Node(x, y, cost, map.f(x, y, cost), ch, dir, n);
             if (map.goal(next)) return getPath(next);
@@ -88,10 +88,11 @@ public abstract class SearchAlgo {
      *
      * @param x x-coordinate.
      * @param y y-coordinate.
+     * @param supplied whether node is after getting supplies.
      * @return True iff location (x,y) is NOT in the closed list.
      */
-    protected boolean notInClosedList(int x, int y){
-        return !closedList.containsKey(x + "," + y);
+    protected boolean notInClosedList(int x, int y, boolean supplied){
+        return !closedList.containsKey(x + "," + y + "," + supplied);
     }
 
     /**
@@ -99,10 +100,11 @@ public abstract class SearchAlgo {
      *
      * @param x x-coordinate.
      * @param y y-coordinate.
+     * @param supplied whether node is after getting supplies.
      * @return True iff location (x,y) is in the open list.
      */
-    protected boolean inOpenList(int x, int y){
-        return openList.containsKey(x + "," + y);
+    protected boolean inOpenList(int x, int y, boolean supplied){
+        return openList.containsKey(x + "," + y + "," + supplied);
     }
 
     /**
