@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class BFS extends SearchAlgo{
+public class BFS extends BreadthFirstSearchAlgo {
 
     private ArrayDeque<Node> queue = new ArrayDeque<>();  // the open list (frontier), a queue
 

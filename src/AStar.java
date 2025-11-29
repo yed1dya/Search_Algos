@@ -1,6 +1,6 @@
 import java.util.PriorityQueue;
 
-public class AStar extends SearchAlgo{
+public class AStar extends BreadthFirstSearchAlgo {
 
     /**
     The open list (frontier), a priority queue.

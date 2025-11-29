@@ -87,6 +87,14 @@ public class Map {
         return cost + heuristic(x, y);
     }
 
+    protected int height(){
+        return this.board.length;
+    }
+
+    protected int width(){
+        return this.board[0].length;
+    }
+
     /**
      * The cost of moving to a space on the grid, defined by the contents of the space ONLY.
      * Does not account for diagonal movement or tunnels.
