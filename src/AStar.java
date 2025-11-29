@@ -83,10 +83,12 @@ public class AStar extends SearchAlgo{
             Node oldNext = getFromOpenList(nx, ny);
             int oldF = map.f(oldNext), newF = map.f(nx, ny, cost);
             if (newF < oldF){
+                priorityQueue.remove(oldNext);
                 oldNext.setParent(current);
                 oldNext.setCost(cost);
                 oldNext.setDir(dir);
                 oldNext.setSupplied(ch == '*' || current.isSupplied());
+                priorityQueue.add(oldNext);
             }
         }
     }

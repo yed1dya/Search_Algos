@@ -76,12 +76,11 @@ public class Node {
     protected String getPath(){
         StringBuilder path = new StringBuilder();
         Node n = this;
-        if (this.parent != null) path.append(dirName(this.dir));
         while (n.parent != null){
+            path.insert(0,"-" + dirName(n.dir));
             n = n.parent;
-            path.insert(0,"-" + dirName(this.dir));
         }
-        return path.substring(1);
+        return !path.isEmpty() ? path.substring(1) : "";
     }
 
     protected static int numberOfNodesCreated(){
