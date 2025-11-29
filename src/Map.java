@@ -20,32 +20,32 @@ public class Map {
     }
 
     /**
-     * Helper function - manhattan distance.
+     * Helper function - Chebyshev distance.
      *
      * @param x1 x-coordinate of point 1.
      * @param y1 y-coordinate of point 1.
      * @param x2 x-coordinate of point 2.
      * @param y2 y-coordinate of point 2.
-     * @return The manhattan distance between the points.
+     * @return The Chebyshev distance between the points.
      */
-    private int manhattan(int x1, int y1, int x2, int y2) {
-        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    private int chebyshev(int x1, int y1, int x2, int y2) {
+        return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
     }
 
     /**
      * Helper function - "tunnel distance".
      * Iterates over all tunnel entrances,
-     * returns the manhattan distance from x,y to the closest one.
+     * returns the chebyshev distance from x,y to the closest one.
      *
      * @param x x-coordinate.
      * @param y y-coordinate.
-     * @return The manhattan distance from point to the closest tunnel
+     * @return The chebyshev distance from point to the closest tunnel
      */
     private int tunnelDistance(int x, int y){
         int distance = Integer.MAX_VALUE;
         for (int[] tunnel : tunnels){
-            int closestTunnel = Math.min(manhattan(x, y, tunnel[0], tunnel[1]),
-                    manhattan(x, y, tunnel[2], tunnel[3]));
+            int closestTunnel = Math.min(chebyshev(x, y, tunnel[0], tunnel[1]),
+                    chebyshev(x, y, tunnel[2], tunnel[3]));
             distance = Math.min(distance, closestTunnel);
         }
         return distance;
@@ -54,15 +54,15 @@ public class Map {
     /**
      * The heuristic function.
      * Minimum of:
-     * manhattan distance to goal, and
-     * manhattan distance to the closest tunnel entrance + 2.
+     * chebyshev distance to goal, and
+     * chebyshev distance to the closest tunnel entrance + 2.
      *
      * @param x x-coordinate.
      * @param y y-coordinate.
      * @return The heuristic of the given location.
      */
     protected int heuristic(int x, int y){
-        return Math.min(manhattan(x, y, goalX, goalY), tunnelDistance(x, y));
+        return Math.min(chebyshev(x, y, goalX, goalY), tunnelDistance(x, y));
     }
 
     /**

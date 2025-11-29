@@ -92,7 +92,6 @@ public class Node {
     }
 
     private String dirName(int[] dir){
-        System.out.println(Arrays.toString(dir));
         if (dir.length == 0) return "Ent";
         StringBuilder sb = new StringBuilder();
         if (dir[0] == 1) sb.append("R");
@@ -104,7 +103,7 @@ public class Node {
 
     @Override
     public String toString(){
-        StringBuilder s = new StringBuilder("[" + this.ID + " | " + this.ch + " | " + this.f + " | ");
+        StringBuilder s = new StringBuilder("[" + this.ID + " | " + this.ch + " | " + this.cost +  " | " + this.f + " | ");
         if (supplied) s.append("sup | ");
         else s.append("not | ");
         if (parent != null) s.append(parent.ID);
