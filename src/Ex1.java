@@ -3,21 +3,21 @@ import java.util.Arrays;
 
 public class Ex1 {
 
-    static String[] clockwiseOrder = {"R", "RD", "D", "LD", "L", "LU", "U", "RU", "Ent"},
+    protected static String[] clockwiseOrder = {"R", "RD", "D", "LD", "L", "LU", "U", "RU", "Ent"},
             counterClockwiseOrder = {"R", "RU", "U", "LU", "L", "LD", "D", "RD", "Ent"};
 
     public static void main(String[] args) {
-        runAlgo("input.txt");
+        runAlgo();
     }
 
-    public static void runAlgo(String inputFileName){
+    private static void runAlgo(){
         int rows, cols, startX = -1, startY = -1, goalX = -1, goalY = -1;
         boolean clockwise, oldFirst = false, withTime, withOpen;
         char[][] board;
         String algoName;
         Node start;
         Map map;
-        try(BufferedReader reader = new BufferedReader(new FileReader(inputFileName))) {
+        try(BufferedReader reader = new BufferedReader(new FileReader("input.txt"))) {
             algoName = reader.readLine();
             String[] lineArr = reader.readLine().split(" ");
             clockwise = lineArr[0].equals("clockwise");
@@ -31,8 +31,8 @@ public class Ex1 {
             cols = Integer.parseInt(lineArr[1]);
             String line = reader.readLine();
             board = new char[rows][cols];
-            int[][] tunnles = new int[10][4];
-            for (int[] t : tunnles){
+            int[][] tunnels = new int[10][4];
+            for (int[] t : tunnels){
                 Arrays.fill(t, -1);
             }
             int row = rows - 1;
@@ -41,7 +41,7 @@ public class Ex1 {
                     char c = line.charAt(col);
                     board[row][col] = c;
                     if (c >= '0' && c <= '9'){
-                        int[] t = tunnles[c - 48];
+                        int[] t = tunnels[c - 48];
                         if (t[0] == -1) { t[0] = col; t[1] = row; }
                         else { t[2] = col; t[3] = row; }
                     }
@@ -51,17 +51,29 @@ public class Ex1 {
                 row--;
                 line = reader.readLine();
             }
-            start = new Node(startX, startY, 0, "", null);
-            map = new Map(board, tunnles, goalX, goalY);
+            start = new Node(startX, startY, 0, 'S', "", null);
+            map = new Map(board, tunnels, goalX, goalY);
             SearchAlgo algo = switch (algoName) {
                 case "BFS" -> new BFS(clockwise, withTime, withOpen, map, start);
-                case "DFID" -> new DFID();
+                case "A*" -> new AStar(clockwise, withTime, withOpen, oldFirst, map, start);
                 default -> null;
             };
-            String output = "";
-            if (algo != null) output = algo.output();
+
+            long startTime = System.nanoTime();
+            String[] results = algo != null ? algo.output() : new String[4];
+            long endTime = System.nanoTime();
+            StringBuilder output = new StringBuilder(results[0]).append('\n');
+            output.append("Num: ").append(results[1]).append('\n');
+            output.append("Max space: ").append(results[2]).append('\n');
+            output.append("Cost: ").append(results[3]);
+            if (withTime){
+                double durationSeconds = (double) (endTime - startTime) / 1_000_000_000.0;
+                String formattedTime = String.format("%.3f", durationSeconds);
+                output.append('\n').append(formattedTime).append(" seconds");
+            }
+
             try (BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"))) {
-                writer.write(output);
+                writer.write(output.toString());
             } catch (IOException e) {
                 System.err.println("Error writing to file: " + e.getMessage());
             }

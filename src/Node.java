@@ -1,54 +1,79 @@
-import java.util.ArrayList;
-
 public class Node {
 
     private int x;
     private int y;
     private int cost;
+    private int serialNumber;
     private Node parent;
     private String ID, dir;
+    private char c;
     private static int countCreatedNodes = 0;
 
-    public Node(int x, int y, int cost, String dir, Node parent){
+    /**
+     * Constructor (if the char at the node is known).
+     *
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @param cost The cost of reaching the node (from start).
+     * @param c The char in the map at location x,y.
+     * @param dir The direction of movement that produced the node.
+     * @param parent The previous node.
+     */
+    protected Node(int x, int y, int cost, char c, String dir, Node parent){
         this.x = x; this.y = y; this.parent = parent; this.cost = cost;
-        this.ID = x + "," + y; this.dir = dir;
+        this.ID = x + "," + y; this.dir = dir; this.c = c;
         countCreatedNodes++;
-        System.out.println(countCreatedNodes + "   " + dir + " (" + this.ID + ")");
+        this.serialNumber = countCreatedNodes;
     }
 
-    public String ID(){
+    /**
+     * Constructor (if the char at the node is unknown).
+     * Gets the char from the map.
+     *
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @param cost The cost of reaching the node (from start).
+     * @param dir The direction of movement that produced the node.
+     * @param parent The previous node.
+     * @param map The map that the node is on.
+     */
+    protected Node (int x, int y, int cost, String dir, Node parent, Map map){
+        this(x, y, cost, map.charAt(x, y), dir, parent);
+    }
+
+    protected String ID(){
         return this.ID;
     }
 
-    public int x(){
+    protected int x(){
         return this.x;
     }
 
-    public int y(){
+    protected int y(){
         return this.y;
     }
 
-    public Node getParent() {
-        return parent;
-    }
-
-    public void setParent(Node parent) {
+    protected void setParent(Node parent) {
         this.parent = parent;
     }
 
-    public int getCost() {
+    protected int getCost() {
         return cost;
     }
 
-    public void setCost(int cost) {
+    protected void setCost(int cost) {
         this.cost = cost;
     }
 
-    public String getDir(){
+    protected String getDir(){
         return this.dir;
     }
 
-    public String getPath(){
+    protected void setDir(String dir){
+        this.dir = dir;
+    }
+
+    protected String getPath(){
         StringBuilder path = new StringBuilder();
         Node n = this;
         if (this.parent != null) path.append(this.dir);
@@ -59,13 +84,21 @@ public class Node {
         return path.substring(1);
     }
 
-    public static int numberOfNodesCreated(){
+    protected static int numberOfNodesCreated(){
         return countCreatedNodes;
+    }
+
+    protected int getSerialNumber(){
+        return this.serialNumber;
     }
 
     @Override
     public String toString(){
-        return this.ID;
+        StringBuilder s = new StringBuilder("[" + this.ID + " | " + this.c + " | " + this.cost + " | ");
+        if (parent != null) s.append(parent.ID);
+        else s.append("null");
+        s.append("]");
+        return s.toString();
     }
 
 }

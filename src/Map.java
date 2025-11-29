@@ -1,11 +1,11 @@
 public class Map {
+
     private char[][] board;
     private int[][] tunnels;
     private int goalX, goalY, width, height;
     private boolean supplied;
-    private SearchAlgo algo;
 
-    public Map(char[][] board, int[][] tunnels, int goalX, int goalY){
+    protected Map(char[][] board, int[][] tunnels, int goalX, int goalY){
         this.board = board; this.tunnels = tunnels; this.goalX = goalX; this.goalY = goalY;
         this.supplied = false; this.height = board.length; this.width = board[0].length;
     }
@@ -17,7 +17,7 @@ public class Map {
      * @param y y-coordinate.
      * @return The char at location x,y on the map.
      */
-    public char charAt(int x, int y){
+    protected char charAt(int x, int y){
         return board[y][x];
     }
 
@@ -28,7 +28,7 @@ public class Map {
      * @param n A node to check.
      * @return True iff the node is the location of the goal.
      */
-    public boolean goal(Node n){
+    protected boolean goal(Node n){
         return n.x() == goalX && n.y() == goalY;
     }
 
@@ -38,7 +38,7 @@ public class Map {
      * @param n A node.
      * @return The heuristic of the given node.
      */
-    public int heuristic(Node n){
+    protected int heuristic(Node n){
         int x = n.x(), y = n.y();
         return Math.abs(x - goalX) + Math.abs(y - goalY);
     }
@@ -49,7 +49,7 @@ public class Map {
      * @param n A node.
      * @return The f(n) value of n.
      */
-    public int f(Node n){
+    protected int f(Node n){
         return n.getCost() + heuristic(n);
     }
 
@@ -61,12 +61,13 @@ public class Map {
      * @param y y-coordinate of space.
      * @return The cost of that space.
      */
-    private int cost(int x, int y){
+    private int cost(int x, int y, boolean diagonal){
         char c = board[y][x];
         switch (c){
             case '#': return -1;
             case '-', '*', 'S': return 1;
-            case '^', 'G': return 5;
+            case '^': return diagonal ? 10 : 5;
+            case 'G': return 5;
             case '~': return 3;
         }
         if (c >= '0' && c <= '9') return 1;
@@ -74,202 +75,68 @@ public class Map {
     }
 
     /**
-     * Creates the node after moving from current node to the space at x,y.
-     * If move is illegal, returns null.
+     * Returns the coordinates after move in requested direction, and the cost.
+     * Checks if move is legal: no walls, smooth floor requires being supplied,
+     * no going back in opposite of previous direction.
+     * If move is illegal, returns null
      *
-     * @param x Target x-coordinate.
-     * @param y Target y-coordinate.
-     * @param diagonal Whether the move is diagonal or not.
-     * @param tunnel Whether the move is through a tunnel or not.
-     * @param current The current node.
-     * @return The node after the specified movement, or null if move is illegal.
+     * @return An int array [new x, new y, cost]
      */
-    private Node move(int x, int y, boolean diagonal, boolean tunnel, String dir, Node current){
-        Node next = null;
-        if (!algo.inClosedList(x, y) && !algo.inOpenList(x, y)) {
-            char c = board[y][x]; int currentCost = current.getCost();
-            if (c != '#' && (supplied || c != '~')) {
-                int extraCost = (diagonal && c == '^') ? 5 : (tunnel ? 1 : 0);
-                next = new Node(x, y, currentCost + cost(x, y) + extraCost, dir, current);
+    protected int[] checkMove(Node current, String dir){
+        int x = current.x(), y = current.y();
+        String previousDir = current.getDir();
+        switch (dir){
+            case "R": {
+                if (x < width - 1 && !previousDir.equals("L")) x++;
+                break;
             }
+            case "RD": {
+                if (x < width - 1 && y > 0 && !previousDir.equals("LU")){ y--; x++; }
+                break;
+            }
+            case "D": {
+                if (y > 0 && !previousDir.equals("U")) y--;
+                break;
+            }
+            case "LD": {
+                if (x > 0 && y > 0 && !previousDir.equals("RU")){ x--; y--; }
+                break;
+            }
+            case "L": {
+                if (x > 0 && !previousDir.equals("R")) x--;
+                break;
+            }
+            case "LU": {
+                if (x > 0 && y < height - 1 && !previousDir.equals("RD")){ x--; y++; }
+                break;
+            }
+            case "U": {
+                if (y < height - 1 && !previousDir.equals("D")) y++;
+                break;
+            }
+            case "RU": {
+                if (x < width - 1 && y < height - 1 && !previousDir.equals("LD")){ x++; y++; }
+                break;
+            }
+            case "Ent": {
+                char c = board[y][x];
+                if (c >= '0' && c <= '9' && !previousDir.equals("Ent")) {
+                    int number = Integer.parseInt(String.valueOf(c));
+                    int[] pair = tunnels[number];
+                    if (x == pair[0] && y == pair[1]) {
+                        return new int[]{pair[2], pair[3], 2};
+                    }
+                    if (x == pair[2] && y == pair[3]) {
+                        return new int[]{pair[0], pair[1], 2};
+                    }
+                } break;
+            }
+            default: return null;
         }
-        return next;
-    }
-
-    /**
-     * Creates the node for a right movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving right, or null if move is illegal.
-     */
-    private Node right(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
-        if (x < width - 1 && !previousDir.equals("L")){
-            x++;
-            next = move(x, y, false, false, "R", current);
-        }
-        return next;
-    }
-
-    /**
-     * Creates the node for a right-down movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving right-down, or null if move is illegal.
-     */
-    private Node rightDown(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
-        if (x < width - 1 && y > 0 && !previousDir.equals("LU")){
-            y--; x++;
-            next = move(x, y, true, false, "RD", current);
-        }
-        return next;
-    }
-
-    /**
-     * Creates the node for a down movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving down, or null if move is illegal.
-     */
-    private Node down(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
-        if (y > 0 && !previousDir.equals("U")){
-            y--;
-            next = move(x, y, false, false, "D", current);
-        }
-        return next;
-    }
-
-    /**
-     * Creates the node for a left-down movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving left-down, or null if move is illegal.
-     */
-    private Node leftDown(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
-        if (x > 0 && y > 0 && !previousDir.equals("RU")){
-            x--; y--;
-            next = move(x, y, true, false, "LD", current);
-        }
-        return next;
-    }
-
-    /**
-     * Creates the node for a left movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving left, or null if move is illegal.
-     */
-    private Node left(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
-        if (x > 0 && !previousDir.equals("R")){
-            x--;
-            next = move(x, y, false, false, "L", current);
-        }
-        return next;
-    }
-
-    /**
-     * Creates the node for a left-up movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving left-up, or null if move is illegal.
-     */
-    private Node leftUp(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
-        if (x > 0 && y < height - 1 && !previousDir.equals("RD")){
-            x--; y++;
-            next = move(x, y, true, false, "LU", current);
-        }
-        return next;
-    }
-
-    /**
-     * Creates the node for an up movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving up, or null if move is illegal.
-     */
-    private Node up(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
-        if (y < height - 1 && !previousDir.equals("D")){
-            y++;
-            next = move(x, y, false, false, "U", current);
-        }
-        return next;
-    }
-
-    /**
-     * Creates the node for a right-up movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving right-up, or null if move is illegal.
-     */
-    private Node rightUp(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
-        if (x < width - 1 && y < height - 1 && !previousDir.equals("LD")){
-            x++; y++;
-            next = move(x, y, true, false, "RU", current);
-        }
-        return next;
-    }
-
-    /**
-     * Creates the node for enter-tunnel movement.
-     * Checks legality of move, then uses moveTo to create the node.
-     * If move is illegal, returns null.
-     *
-     * @param current The current node.
-     * @return The node after moving enter-tunnel, or null if move is illegal.
-     */
-    private Node enterTunnel(Node current){
-        int x = current.x(), y = current.y(); Node next = null; String previousDir = current.getDir();
         char c = board[y][x];
-        if (c >= '0' && c <= '9' && !previousDir.equals("Ent")) {
-            int number = Integer.parseInt("" + c);
-            int[] pair = tunnels[number];
-            if (x == pair[0] && y == pair[1]){
-                x = pair[2]; y = pair[3];
-            }
-            else if (x == pair[2] && y == pair[3]) {
-                x = pair[0]; y = pair[1];
-            }
-            next = move(x, y, false, true, "Ent", current);
+        if (c != '#' && (supplied || c != '~')) {
+            return new int[]{x, y, cost(x, y, dir.length() == 2)};
         }
-        return next;
-    }
-
-    public Node moveToDir(String dir, Node current, SearchAlgo algo){
-        this.algo = algo;
-        return switch (dir) {
-            case "R" -> right(current);
-            case "RD" -> rightDown(current);
-            case "D" -> down(current);
-            case "LD" -> leftDown(current);
-            case "L" -> left(current);
-            case "LU" -> leftUp(current);
-            case "U" -> up(current);
-            case "RU" -> rightUp(current);
-            case "Ent" -> enterTunnel(current);
-            default -> null;
-        };
+        return null;
     }
 }
