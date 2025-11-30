@@ -12,13 +12,14 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
         t = map.heuristic(start.x(), start.y());
         while (t < Integer.MAX_VALUE){
             minF = Integer.MAX_VALUE;
+            start = new InOutNode(start);
             addToOpenList(start);
             while (!stack.empty()){
                 if (withOpen) printOpenList();
                 InOutNode current = stack.pop();
                 if (current.isOut()) openList.remove(current.ID());
                 else {
-                    current.setOut();
+                    current.setOut(true);
                     stack.push(current);
                     if (clockwise) {
                         for (int[] dir : Ex1.clockwiseOrder) {
@@ -59,8 +60,7 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
         }
         InOutNode next = new InOutNode(x, y, cost, nextF, (char) checkNext[3], dir, current);
         if (map.goal(next)) return getPath(next);
-        stack.push(next);
-        openList.put(next.ID(), next);
+        addToOpenList(next);
         return null;
     }
 
@@ -68,6 +68,7 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
     protected void addToOpenList(Node n) {
         stack.push((InOutNode) n);
         openList.put(n.ID(), n);
+        maxSizeOfOpenList = Math.max(maxSizeOfOpenList, openList.size());
     }
 
     @Override

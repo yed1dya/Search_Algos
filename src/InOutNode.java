@@ -27,8 +27,8 @@ public class InOutNode extends Node{
         return this.out;
     }
 
-    protected void setOut(){
-        this.out = true;
+    protected void setOut(boolean out){
+        this.out = out;
     }
 
     @Override
