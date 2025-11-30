@@ -70,14 +70,16 @@ public class AStar extends BreadthFirstSearchAlgo {
      * @param current Current node.
      * @param dir Direction to move in.
      */
-    private void checkDir(Node current, int[] dir){
+    @Override
+    protected Node checkDir(Node current, int[] dir){
         int[] checkNext = map.checkMove(current, dir);
-        if (checkNext == null) return;
+        if (checkNext == null) return null;
         int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + current.getCost();
         char ch = (char)checkNext[3];
-        boolean supplied = current.isSupplied() || ch == '*';
+        boolean supplied = checkNext[4] == 1;
         if (notInClosedList(nx, ny, supplied) && !inOpenList(nx, ny, supplied)){
-            addToOpenList(new Node(nx, ny, cost, map.f(nx, ny, cost), ch, dir, current));
+            Node next = new Node(nx, ny, cost, map.f(nx, ny, cost), ch, dir, current);
+            addToOpenList(next);
         }
         else if (inOpenList(nx, ny, supplied)){
             Node oldNext = getFromOpenList(nx, ny, supplied);
@@ -90,7 +92,9 @@ public class AStar extends BreadthFirstSearchAlgo {
                 oldNext.setSupplied(supplied);
                 priorityQueue.add(oldNext);
             }
+            return oldNext;
         }
+        return null;
     }
 
     /**

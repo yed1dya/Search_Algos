@@ -1,23 +1,20 @@
 public class Node {
 
-    private int x;
-    private int y;
-    private int cost;
-    private int f;
-    private int serialNumber;
+    protected int x, y, cost, f, serialNumber;
     private int[] dir;
-    private Node parent;
+    protected Node parent;
     private String ID;
-    private char ch;
-    private boolean supplied;
+    protected char ch;
+    protected boolean supplied;
     private static int countCreatedNodes = 0;
 
     /**
-     * Constructor (if the char at the node is known).
+     * Constructor.
      *
      * @param x x-coordinate.
      * @param y y-coordinate.
      * @param cost The cost of reaching the node (from start).
+     * @param f The f-value of the node (g+h).
      * @param c The char in the map at location x,y.
      * @param dir The direction of movement that produced the node.
      * @param parent The previous node.
@@ -41,6 +38,18 @@ public class Node {
 
     protected int y(){
         return this.y;
+    }
+
+    protected int f(){
+        return this.f;
+    }
+
+    protected char getCh(){
+        return this.ch;
+    }
+
+    protected Node getParent(){
+        return this.parent;
     }
 
     protected void setParent(Node parent) {

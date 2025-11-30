@@ -59,6 +59,7 @@ public class Ex1 {
                 case "BFS" -> new BFS(clockwise, withTime, withOpen, map, start);
                 case "A*" -> new AStar(clockwise, withTime, withOpen, oldFirst, map, start);
                 case "DFID" -> new DFID(clockwise, withTime, withOpen, map, start);
+                case "IDA*" -> new IDAStar(clockwise, withTime, withOpen, map, start);
                 default -> null;
             };
 

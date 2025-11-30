@@ -30,6 +30,18 @@ public abstract class SearchAlgo {
      */
     protected abstract void printOpenList();
 
+    protected Node checkDir(Node current, int[] dir){
+        int[] checkNext = map.checkMove(current, dir);
+        if (checkNext == null) return null;
+        int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + current.getCost();
+        char ch = (char)checkNext[3];
+        boolean supplied = checkNext[4] == 1;
+        if (!inOpenList(nx, ny, supplied)){
+            return new Node(nx, ny, cost, map.f(nx, ny, cost), ch, dir, current);
+        }
+        return null;
+    }
+
     /**
      * Get the output from running the search algo.
      * (runs the algorithm).

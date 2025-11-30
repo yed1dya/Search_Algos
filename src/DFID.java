@@ -1,6 +1,6 @@
 import java.util.HashMap;
 
-public class DFID extends DepthFirstSearchAlgo {
+public class DFID extends SearchAlgo {
 
     private int maxDepth;
 
@@ -57,20 +57,9 @@ public class DFID extends DepthFirstSearchAlgo {
                 }
             }
         }
+        if (withOpen) printOpenList();
         removeFromOpenList(current);
         return cutoff ? "cutoff" : "fail";
-    }
-
-    private Node checkDir(Node current, int[] dir){
-        int[] checkNext = map.checkMove(current, dir);
-        if (checkNext == null) return null;
-        int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + current.getCost();
-        char ch = (char)checkNext[3];
-        boolean supplied = current.isSupplied() || ch == '*';
-        if (!inOpenList(nx, ny, supplied)){
-            return new Node(nx, ny, cost, map.f(nx, ny, cost), ch, dir, current);
-        }
-        return null;
     }
 
     @Override

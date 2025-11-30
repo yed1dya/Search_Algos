@@ -16,7 +16,11 @@ public class Map {
      * @return True iff the node is the location of the goal.
      */
     protected boolean goal(Node n){
-        return n.x() == goalX && n.y() == goalY;
+        return goal(n.x(), n.y());
+    }
+
+    protected boolean goal(int x, int y){
+        return x == goalX && y == goalY;
     }
 
     /**
@@ -126,18 +130,18 @@ public class Map {
      * @param x x-coordinate.
      * @param y y-coordinate.
      * @param previousDir The previous direction.
-     * @return [new x, new y, cost of move, tunnel number] if valid, else null.
+     * @return [new x, new y, cost of move, tunnel number, supplied] if valid, else null.
      */
-    private int[] enterTunnel(int x, int y, int[] previousDir){
+    private int[] enterTunnel(int x, int y, int[] previousDir, int supplied){
         char ch = board[y][x];
         if (ch >= '0' && ch <= '9' && previousDir.length != 0) {
             int number = Integer.parseInt(String.valueOf(ch));
             int[] pair = tunnels[number];
             if (x == pair[0] && y == pair[1]) {
-                return new int[]{pair[2], pair[3], 2, ch};
+                return new int[]{pair[2], pair[3], 2, ch, supplied};
             }
             if (x == pair[2] && y == pair[3]) {
-                return new int[]{pair[0], pair[1], 2, ch};
+                return new int[]{pair[0], pair[1], 2, ch, supplied};
             }
         }
         return null;
@@ -149,12 +153,13 @@ public class Map {
      * no going back in opposite of previous direction (unless supplying).
      * If move is illegal, returns null.
      *
-     * @return An int array [new x, new y, cost of move, char in next spot] if valid, else null.
+     * @return An int array [new x, new y, cost of move, char in next spot, supplied] if valid, else null.
      */
     protected int[] checkMove(Node current, int[] dir){
         int x = current.x(), y = current.y();
         int[] previousDir = current.getDir();
-        if (dir.length == 0) return enterTunnel(x, y, previousDir);
+        int supplied = current.isSupplied() ? 1 : 0;
+        if (dir.length == 0) return enterTunnel(x, y, previousDir, supplied);
         x += dir[0]; y += dir[1];
         if (x < 0 || y < 0 || y >= board.length || x >= board[0].length) return null;
         char ch = board[y][x];
@@ -162,11 +167,10 @@ public class Map {
             int xMoved = previousDir[0] + dir[0], yMoved = previousDir[1] + dir[1];
             if (xMoved == 0 && yMoved == 0) return null;
         }
-        boolean supplied = current.isSupplied(),
-                diagonal = dir[0] != 0 && dir[1] != 0;
-        int cost = cost(x, y, diagonal, supplied);
-        if (ch != '#' && (supplied || ch != '~') && cost != -1) {
-            return new int[]{x, y, cost, ch};
+        boolean diagonal = dir[0] != 0 && dir[1] != 0;
+        int cost = cost(x, y, diagonal, supplied == 1);
+        if (ch != '#' && (supplied == 1 || ch != '~') && cost != -1) {
+            return new int[]{x, y, cost, ch, supplied};
         }
         return null;
     }
