@@ -1,15 +1,22 @@
+import java.util.Comparator;
 import java.util.HashMap;
 
 public abstract class SearchAlgo {
 
     protected HashMap<String, Node> openList = new HashMap<>();  // the open list (frontier)
-    protected boolean clockwise;
-    protected boolean withTime;
-    protected boolean withOpen;
+    protected boolean clockwise, withTime, withOpen, oldFirst;
     protected Map map;
     protected Node start;
-    protected static int maxSizeOfOpenList = 0, pathCost = 0;
-    protected boolean oldFirst;
+    protected int maxSizeOfOpenList = 0, pathCost = 0;
+    protected Comparator<Node> nodeCompare = (n1, n2) -> {
+        int fCompare = Integer.compare(map.f(n1), map.f(n2));
+        if (fCompare != 0) return fCompare;
+        if (oldFirst) {
+            return Integer.compare(n1.getSerialNumber(), n2.getSerialNumber());
+        } else {
+            return Integer.compare(n2.getSerialNumber(), n1.getSerialNumber());
+        }
+    };
 
     /**
      * The actual workhorse - the specific algorithm implementation.

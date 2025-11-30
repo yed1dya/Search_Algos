@@ -1,7 +1,3 @@
-DFBnB
-clockwise old-first
-no time
-no open
 10x9
 #########
 S-1--####

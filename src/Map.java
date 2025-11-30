@@ -163,7 +163,7 @@ public class Map {
         x += dir[0]; y += dir[1];
         if (x < 0 || y < 0 || y >= board.length || x >= board[0].length) return null;
         char ch = board[y][x];
-        if (ch != '*' && previousDir.length != 0){
+        if ((ch != '*' || supplied == 1) && previousDir.length != 0){
             int xMoved = previousDir[0] + dir[0], yMoved = previousDir[1] + dir[1];
             if (xMoved == 0 && yMoved == 0) return null;
         }

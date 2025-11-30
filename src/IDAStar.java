@@ -1,17 +1,21 @@
 public class IDAStar extends IterativeDepthFirstSearchAlgo {
 
-    private int t, minF;
+    private int t;
+    private int minF;
+    private int maxF;
 
     protected IDAStar(boolean clockwise, boolean withTime, boolean withOpen, Map map, Node start) {
         this.clockwise = clockwise; this.withTime = withTime; this.withOpen = withOpen;
-        this.map = map; this.start = new InOutNode(start);
+        this.map = map; this.start = start;
+        int height = map.height(), width = map.width();
+        maxF = height * width * 10;
     }
 
     @Override
     protected String findPath() {
         t = map.heuristic(start.x(), start.y());
-        while (t < Integer.MAX_VALUE){
-            minF = Integer.MAX_VALUE;
+        while (t < maxF){
+            minF = maxF;
             start = new InOutNode(start);
             addToOpenList(start);
             while (!stack.empty()){
@@ -19,7 +23,7 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
                 InOutNode current = stack.pop();
                 if (current.isOut()) openList.remove(current.ID());
                 else {
-                    current.setOut(true);
+                    current.setOut();
                     stack.push(current);
                     if (clockwise) {
                         for (int[] dir : Ex1.clockwiseOrder) {

@@ -6,17 +6,7 @@ public class AStar extends BreadthFirstSearchAlgo {
     The open list (frontier), a priority queue.
     sorted by f(n) first, then by old-first or new-first.
      */
-    private PriorityQueue<Node> priorityQueue = new PriorityQueue<>(
-            (n1, n2) -> {
-                int fCompare = Integer.compare(map.f(n1), map.f(n2));
-                if (fCompare != 0) return fCompare;
-                if (oldFirst) {
-                    return Integer.compare(n1.getSerialNumber(), n2.getSerialNumber());
-                } else {
-                    return Integer.compare(n2.getSerialNumber(), n1.getSerialNumber());
-                }
-            }
-    );
+    private PriorityQueue<Node> priorityQueue = new PriorityQueue<>(nodeCompare);
 
     /**
      * Constructor.

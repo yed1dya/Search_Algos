@@ -19,7 +19,7 @@ public class InOutNode extends Node{
     }
 
     protected InOutNode(Node n){
-        super(n.x(), n.y(), n.getCost(), n.f(), n.getCh(), n.getDir(), n.getParent());
+        super(n.x, n.y, n.cost, n.f, n.ch, n.dir, n.parent);
         this.out = false;
     }
 
@@ -27,8 +27,8 @@ public class InOutNode extends Node{
         return this.out;
     }
 
-    protected void setOut(boolean out){
-        this.out = out;
+    protected void setOut(){
+        this.out = true;
     }
 
     @Override

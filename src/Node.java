@@ -1,9 +1,9 @@
 public class Node {
 
     protected int x, y, cost, f, serialNumber;
-    private int[] dir;
+    protected int[] dir;
     protected Node parent;
-    private String ID;
+    protected String ID;
     protected char ch;
     protected boolean supplied;
     private static int countCreatedNodes = 0;

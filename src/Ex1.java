@@ -9,17 +9,17 @@ public class Ex1 {
     //{"R", "RU", "U", "LU", "L", "LD", "D", "RD", "Ent"};
 
     public static void main(String[] args) {
-        runAlgo();
+        runAlgo("input.txt");
     }
 
-    private static void runAlgo(){
+    protected static void runAlgo(String fileMame){
         int rows, cols, startX = -1, startY = -1, goalX = -1, goalY = -1;
         boolean clockwise, oldFirst = false, withTime, withOpen;
         char[][] board;
         String algoName;
         Node start;
         Map map;
-        try(BufferedReader reader = new BufferedReader(new FileReader("input.txt"))) {
+        try(BufferedReader reader = new BufferedReader(new FileReader(fileMame))) {
             algoName = reader.readLine();
             String[] lineArr = reader.readLine().split(" ");
             clockwise = lineArr[0].equals("clockwise");
@@ -60,6 +60,7 @@ public class Ex1 {
                 case "A*" -> new AStar(clockwise, withTime, withOpen, oldFirst, map, start);
                 case "DFID" -> new DFID(clockwise, withTime, withOpen, map, start);
                 case "IDA*" -> new IDAStar(clockwise, withTime, withOpen, map, start);
+                case "DFBnB" -> new DFBnB(clockwise, withTime, withOpen, oldFirst, map, start);
                 default -> null;
             };
 
