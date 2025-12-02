@@ -1,5 +1,5 @@
-DFBnB
-clockwise old-first
+BFS
+clockwise
 no time
 no open
 10x9
@@ -10,6 +10,6 @@ S-1--####
 ~~^^^---2
 G~^^^----
 ^#^^^----
-1#^^^---2
+1#^^^---23
 -#^^^----
 --------*

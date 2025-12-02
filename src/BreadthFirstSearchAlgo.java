@@ -2,7 +2,10 @@ import java.util.HashMap;
 
 public abstract class BreadthFirstSearchAlgo extends SearchAlgo {
 
-    protected HashMap<String, Node> closedList = new HashMap<>();  // C, the closed list (explored set)
+    /**
+     * The closed list (explored set), a HashMap.
+     */
+    protected HashMap<String, Node> closedList = new HashMap<>();
 
     /**
      * Remove and return head node from open list.
@@ -10,27 +13,6 @@ public abstract class BreadthFirstSearchAlgo extends SearchAlgo {
      * @return Head node from open list.
      */
     protected abstract Node removeHeadFromOpenList();
-
-    /**
-     * Expand node in given direction.
-     *
-     * @param n Node to expand.
-     * @param dir Direction to expand in.
-     * @return Path to goal, if found. Else, null.
-     */
-    protected String expandTo(Node n, int[] dir){
-        int[] checkNext = map.checkMove(n, dir);
-        if (checkNext == null) return null;
-        int x = checkNext[0], y = checkNext[1], cost = checkNext[2];
-        char ch = (char)checkNext[3];
-        if (notInClosedList(x, y, n.isSupplied()) && !inOpenList(x, y, n.isSupplied())){
-            cost += n.getCost();
-            Node next = new Node(x, y, cost, map.f(x, y, cost), ch, dir, n);
-            if (map.goal(next)) return getPath(next);
-            else addToOpenList(next);
-        }
-        return null;
-    }
 
     /**
      * Add node to closed list (the hashMap).

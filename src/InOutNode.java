@@ -8,18 +8,17 @@ public class InOutNode extends Node{
      * @param x      x-coordinate.
      * @param y      y-coordinate.
      * @param cost   The cost of reaching the node (from start).
-     * @param f      The f-value of the node (g+h).
      * @param c      The char in the map at location x,y.
      * @param dir    The direction of movement that produced the node.
      * @param parent The previous node.
      */
-    protected InOutNode(int x, int y, int cost, int f, char c, int[] dir, Node parent) {
-        super(x, y, cost, f, c, dir, parent);
+    protected InOutNode(int x, int y, int cost, char c, int[] dir, Node parent) {
+        super(x, y, cost, c, dir, parent);
         this.out = false;
     }
 
     protected InOutNode(Node n){
-        super(n.x, n.y, n.cost, n.f, n.ch, n.dir, n.parent);
+        super(n.x, n.y, n.cost, n.ch, n.dir, n.parent);
         this.out = false;
     }
 
@@ -36,7 +35,6 @@ public class InOutNode extends Node{
         StringBuilder s = new StringBuilder("[" + this.x + "," + this.y);
         s.append(" | ").append(this.ch);
         s.append(" | ").append(this.cost);
-        s.append(" | ").append(this.f);
         if (supplied) s.append(" | sup | ");
         else s.append(" | not | ");
         if (out) s.append("out | ");

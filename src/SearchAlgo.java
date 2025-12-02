@@ -3,7 +3,10 @@ import java.util.HashMap;
 
 public abstract class SearchAlgo {
 
-    protected HashMap<String, Node> openList = new HashMap<>();  // the open list (frontier)
+    /**
+     * The open list (frontier)
+     */
+    protected HashMap<String, Node> openList = new HashMap<>();
     protected boolean clockwise, withTime, withOpen, oldFirst;
     protected Map map;
     protected Node start;
@@ -19,7 +22,7 @@ public abstract class SearchAlgo {
     };
 
     /**
-     * The actual workhorse - the specific algorithm implementation.
+     * The actual specific algorithm implementation.
      *
      * @return A path start --> goal, or "no path".
      */
@@ -37,14 +40,14 @@ public abstract class SearchAlgo {
      */
     protected abstract void printOpenList();
 
-    protected Node checkDir(Node current, int[] dir){
+    protected Node nextNode(Node current, int[] dir){
         int[] checkNext = map.checkMove(current, dir);
         if (checkNext == null) return null;
         int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + current.getCost();
         char ch = (char)checkNext[3];
         boolean supplied = checkNext[4] == 1;
         if (!inOpenList(nx, ny, supplied)){
-            return new Node(nx, ny, cost, map.f(nx, ny, cost), ch, dir, current);
+            return new Node(nx, ny, cost, ch, dir, current);
         }
         return null;
     }

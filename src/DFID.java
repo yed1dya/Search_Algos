@@ -17,39 +17,66 @@ public class DFID extends SearchAlgo {
         this.clockwise = clockwise; this.withTime = withTime; this.withOpen = withOpen;
         this.map = map; this.start = start;
         int height = map.height(), width = map.width();
-        maxDepth = height * width;
+        /*
+         * If we walk on all the tiles, we will definitely reach the goal.
+         * But in order to walk on all of them, we might need to get supplies.
+         * So in the most extreme case, we would walk on almost all the tiles to get supplies,
+         * and then again to the goal. Like in this case:
+         * G~S^^^^^*
+         * We can't walk on tiles that are '#', and we will only walk on tiles that are '~' once.
+         */
+        maxDepth = ((height * width - map.charCount('#')) * 2) - map.charCount('~');
     }
 
+    /**
+     * Driver loop of the algorithm.
+     * Calls the actual DFS method.
+     *
+     * @return A string representing the path, or "no path" if no path exists.
+     */
     @Override
     protected String findPath() {
         for (int depth = 1; depth < maxDepth; depth++) {
-            openList = new HashMap<>();
-            String result = limitedDFS(start, depth);
+            openList = new HashMap<>();  // Reset the open list between rounds of DFS.
+            String result = limitedDFS(start, depth);  // Run DFS and get the result.
+            // If DFS found the goal before cutoff, that's the shortest path:
             if (!result.equals("cutoff")) return result;
         }
-        return "no path";
+        return "no path";  // If max depth was reached with no path returned, there is no path.
     }
 
+    /**
+     * Actual DFS method, recursive implementation.
+     *
+     * @param current The current node.
+     * @param limit The cutoff limit.
+     * @return A string representing the path, or "cutoff" if no path was found before reaching cutoff depth.
+     */
     private String limitedDFS(Node current, int limit) {
+        // If the current node is the goal, return the path to it and update the cost.
         if (map.goal(current)) {
             pathCost = current.getCost();
             return current.getPath();
         }
-        if (limit == 0) return "cutoff";
+        if (limit == 0) return "cutoff";  // If limit was reached.
+        // Else, expand the current node:
         addToOpenList(current);
         boolean cutoff = false;
         if (clockwise) {
             for (int[] dir : Ex1.clockwiseOrder) {
-                Node next = checkDir(current, dir);
+                Node next = nextNode(current, dir);
                 if (next != null) {
+                    // If next node is valid, recurse from it:
                     String result = limitedDFS(next, limit - 1);
+                    // If the path from that node was cut off, we can ignore that option:
                     if (result.equals("cutoff")) cutoff = true;
+                    // If the result isn't "cutoff" or "fail", it's a path:
                     else if (!result.equals("fail")) return result;
                 }
             }
         } else {
             for (int[] dir : Ex1.counterClockwiseOrder) {
-                Node next = checkDir(current, dir);
+                Node next = nextNode(current, dir);
                 if (next != null) {
                     String result = limitedDFS(next, limit - 1);
                     if (result.equals("cutoff")) cutoff = true;
@@ -57,21 +84,34 @@ public class DFID extends SearchAlgo {
                 }
             }
         }
-        if (withOpen) printOpenList();
-        removeFromOpenList(current);
+        if (withOpen) printOpenList();  // Option for debugging
+        /*
+         * After we recursed from all children of the node (and didn't return a path),
+         * we can remove that node:
+         */
+        openList.remove(current.ID());
+        /*
+         * Return status: "cutoff" if we stopped because of depth cutoff,
+         * or "fail" if we ran out of where to go:
+         */
         return cutoff ? "cutoff" : "fail";
     }
 
+    /**
+     * Adds node to open list (hashMap).
+     * Updates maxSizeOfOpenList.
+     *
+     * @param n Node to add.
+     */
     @Override
     protected void addToOpenList(Node n) {
         openList.put(n.ID(), n);
         maxSizeOfOpenList = Math.max(maxSizeOfOpenList, openList.size());
     }
 
-    protected void removeFromOpenList(Node n) {
-        openList.remove(n.ID());
-    }
-
+    /**
+     * Prints open list.
+     */
     @Override
     protected void printOpenList() {
         System.out.print(openList.size());

@@ -3,7 +3,7 @@ import java.io.*;
 public class TestEx1 {
 
     public static void main(String[] args) {
-        String[] algorithms = {"BFS", "A*", "DFID", "IDA*"};
+        String[] algorithms = {"BFS", "A*", "DFID", "IDA*", "DFBnB"};
         String[] orders = {"clockwise", "counter-clockwise"};
         String[] tieBreakers = {"old-first", "new-first"};
 
@@ -19,6 +19,7 @@ public class TestEx1 {
             return;
         }
 
+        int count = 0;
         for (File mazeFile : mazeFiles) {
             String mazeData = readMazeFile(mazeFile);
             if (mazeData == null) continue;
@@ -28,7 +29,7 @@ public class TestEx1 {
 
             for (String algo : algorithms) {
                 for (String order : orders) {
-                    boolean needsTieBreaker = algo.equals("A*");
+                    boolean needsTieBreaker = algo.equals("A*") || algo.equals("DFBnB");
                     if (needsTieBreaker) {
                         for (String tie : tieBreakers) {
                             generateFile(algo, order, tie, mazeNameClean, mazeData);
@@ -36,15 +37,18 @@ public class TestEx1 {
                     } else {
                         generateFile(algo, order, null, mazeNameClean, mazeData);
                     }
+                    count++;
                 }
             }
         }
-        System.out.println("Test generation complete.");
+        System.out.println("Test generation complete. Generated " + count + " files.");
     }
 
     private static void generateFile(String algo, String order, String tie, String mazeName, String mazeData) {
         String fileName;
         String line1;
+        if (algo.equals("A*")) algo = "AStar";
+        if (algo.equals("IDA*")) algo = "IDAStar";
         if (tie != null) {
             fileName = String.format("%s %s %s %s.txt", algo, order, tie, mazeName);
             line1 = order + " " + tie;
@@ -52,6 +56,8 @@ public class TestEx1 {
             fileName = String.format("%s %s %s.txt", algo, order, mazeName);
             line1 = order;
         }
+        if (algo.equals("AStar")) algo = "A*";
+        if (algo.equals("IDAStar")) algo = "IDA*";
         StringBuilder content = new StringBuilder();
         content.append(algo).append("\n");          // Line 0
         content.append(line1).append("\n");         // Line 1

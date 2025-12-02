@@ -2,10 +2,36 @@ public class Map {
 
     private char[][] board;
     private int[][] tunnels;
+    private int[] charCounts;
     private int goalX, goalY;
 
-    protected Map(char[][] board, int[][] tunnels, int goalX, int goalY){
+    protected Map(char[][] board, int[][] tunnels, int goalX, int goalY, int[] charCounts){
         this.board = board; this.tunnels = tunnels; this.goalX = goalX; this.goalY = goalY;
+        this.charCounts = charCounts;
+    }
+
+    protected int[] charCounts(){
+        return this.charCounts;
+    }
+
+    /**
+     * Returns the count of given char in the map.
+     *
+     * @param ch Query char.
+     * @return The number of times ch appears in the map.
+     */
+    protected int charCount(char ch){
+        if (ch >= '0' && ch <= '9'){
+            return charCounts[ch - '0'];
+        }
+        return switch (ch){
+            case '-' -> charCounts[10];
+            case '*' -> charCounts[11];
+            case '~' -> charCounts[12];
+            case '^' -> charCounts[13];
+            case '#' -> charCounts[14];
+            default -> -1;
+        };
     }
 
     /**
@@ -57,16 +83,21 @@ public class Map {
 
     /**
      * The heuristic function.
-     * Minimum of:
-     * chebyshev distance to goal, and
-     * chebyshev distance to the closest tunnel entrance + 2.
+     * If the location is the goal, heuristic is 0.
+     * Else, the minimum of:
+     * chebyshev distance to goal + 4
+     * (because the last step will always cost 5, thr price for stepping onto G),
+     * and
+     * chebyshev distance to the closest tunnel entrance + 2 + 5
+     * (because the cost of using the tunnel is 2, plus the cost of the last step).
      *
      * @param x x-coordinate.
      * @param y y-coordinate.
      * @return The heuristic of the given location.
      */
     protected int heuristic(int x, int y){
-        return Math.min(chebyshev(x, y, goalX, goalY), tunnelDistance(x, y) + 2);
+        if (goal(x, y)) return 0;
+        return Math.min(chebyshev(x, y, goalX, goalY) + 4, tunnelDistance(x, y) + 7);
     }
 
     /**
@@ -107,7 +138,7 @@ public class Map {
      * @param y y-coordinate of space.
      * @return The cost of that space.
      */
-    private int cost(int x, int y, boolean diagonal, boolean supplied){
+    protected int cost(int x, int y, boolean diagonal, boolean supplied){
         char ch = board[y][x];
         switch (ch){
             case '#': return -1;

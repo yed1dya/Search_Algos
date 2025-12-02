@@ -1,6 +1,6 @@
 public class Node {
 
-    protected int x, y, cost, f, serialNumber;
+    protected int x, y, cost, serialNumber;
     protected int[] dir;
     protected Node parent;
     protected String ID;
@@ -11,18 +11,18 @@ public class Node {
     /**
      * Constructor.
      *
-     * @param x x-coordinate.
-     * @param y y-coordinate.
-     * @param cost The cost of reaching the node (from start).
-     * @param f The f-value of the node (g+h).
-     * @param c The char in the map at location x,y.
-     * @param dir The direction of movement that produced the node.
+     * @param x      x-coordinate.
+     * @param y      y-coordinate.
+     * @param cost   The cost of reaching the node (from start).
+     * @param c      The char in the map at location x,y.
+     * @param dir    The direction of movement that produced the node.
      * @param parent The previous node.
      */
-    protected Node(int x, int y, int cost, int f, char c, int[] dir, Node parent){
+    protected Node(int x, int y, int cost, char c, int[] dir, Node parent){
         this.x = x; this.y = y; this.parent = parent; this.cost = cost;
-        this.dir = dir; this.ch = c; this.f = f;
+        this.dir = dir; this.ch = c;
         this.supplied = (c == '*' || (parent != null && parent.supplied));
+        // Each state is defined by: x,y coordinates, and whether the robot is supplied at that point.
         this.ID = x + "," + y + "," + this.supplied;
         countCreatedNodes++;
         this.serialNumber = countCreatedNodes;
@@ -38,18 +38,6 @@ public class Node {
 
     protected int y(){
         return this.y;
-    }
-
-    protected int f(){
-        return this.f;
-    }
-
-    protected char getCh(){
-        return this.ch;
-    }
-
-    protected Node getParent(){
-        return this.parent;
     }
 
     protected void setParent(Node parent) {
@@ -81,10 +69,16 @@ public class Node {
         this.supplied = supplied;
     }
 
+    /**
+     * Iterate backwards by parents to build the path.
+     *
+     * @return A String representing the path to the node, or an empty string if there is no path.
+     */
     protected String getPath(){
         StringBuilder path = new StringBuilder();
         Node n = this;
         while (n.parent != null){
+            System.out.print(n.ch + " ");
             path.insert(0,"-" + dirName(n.dir));
             n = n.parent;
         }
@@ -99,6 +93,12 @@ public class Node {
         return this.serialNumber;
     }
 
+    /**
+     * Provides direction name for path printing.
+     *
+     * @param dir Query direction.
+     * @return The direction's name.
+     */
     private String dirName(int[] dir){
         if (dir.length == 0) return "Ent";
         StringBuilder sb = new StringBuilder();
@@ -114,7 +114,6 @@ public class Node {
         StringBuilder s = new StringBuilder("[" + this.x + "," + this.y);
         s.append(" | ").append(this.ch);
         s.append(" | ").append(this.cost);
-        s.append(" | ").append(this.f);
         if (supplied) s.append(" | sup | ");
         else s.append(" | not | ");
         if (parent != null){

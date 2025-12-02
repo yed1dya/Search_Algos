@@ -3,8 +3,6 @@ import java.util.Collections;
 
 public class DFBnB extends IterativeDepthFirstSearchAlgo{
 
-    private int maxF;
-
     /**
      * Constructor.
      *
@@ -16,37 +14,56 @@ public class DFBnB extends IterativeDepthFirstSearchAlgo{
      * @param start     start node.
      */
     protected DFBnB(boolean clockwise, boolean withTime, boolean withOpen, boolean oldFirst,
-                    Map map, Node start){
+                    Map map, InOutNode start){
         this.clockwise = clockwise; this.withTime = withTime; this.withOpen = withOpen;
-        this.oldFirst = oldFirst; this.map = map; this.start = new InOutNode(start);
-        int height = map.height(), width = map.width();
-        maxF = height * width * 10;
+        this.oldFirst = oldFirst; this.map = map; this.start = start;
+        this.maxF = maxF(map);
     }
 
+    /**
+     * Run DFBnB to find an optimal path from start to goal.
+     * Using a stack, runs DFS with increasingly shorter cutoffs.
+     *
+     * @return A string representing the path, or "no path" if no path exists.
+     */
     @Override
     protected String findPath() {
-        String result = "no path";
-        int t = maxF;
+        String result = "no path";  // Initially, we assume no path
+        int t = maxF;  // Set initial cutoff to max.
         addToOpenList(start);
         while (!stack.empty()){
-            //if (withOpen) printOpenList();
+            if (withOpen) printOpenList();  // Option for debugging.
             InOutNode current = stack.pop();
+            /*
+            * If we popped a node that is already marked 'out',
+            * it means we already expanded it, and pruned all of its branches.
+            */
             if (current.isOut()) openList.remove(current.ID());
-            else{
+            else{  // When we expand a node, mark it 'out':
                 current.setOut();
                 stack.push(current);
+                /*
+                 * Get the list of legal neighbors, sorted by f-value and creation time.
+                 * Iterate over it; when we reach one that has a higher f-value than the current cutoff,
+                 * we want to remove that one and all the ones after it (because they all have a higher f-value).
+                 */
                 ArrayList<InOutNode> neighbors = neighbors(current);
                 int removeFromIndex = -1;
                 for (int i = 0; i < neighbors.size(); i++) {
                     InOutNode next = neighbors.get(i);
-                    if (next.f >= t) {
+                    if (map.f(next) >= t) {
                         removeFromIndex = i;
                         break;
                     }
+                    /*
+                     * If a node has a good f-value, but already in the open list:
+                     * We compare the f-value of the new node vs the copy that already exists,
+                     * and keep the cheaper one.
+                     */
                     else if (openList.containsKey(next.ID())){
                         InOutNode oldNext = (InOutNode) openList.get(next.ID());
                         if (oldNext.isOut()) neighbors.remove(i--);
-                        else if (oldNext.f <= next.f) {
+                        else if (map.f(oldNext) <= map.f(next)) {
                             neighbors.remove(i--);
                         }
                         else {
@@ -54,12 +71,18 @@ public class DFBnB extends IterativeDepthFirstSearchAlgo{
                             stack.remove(oldNext);
                         }
                     }
+                    /*
+                     * If the node isn't already in the open list, check if it's the goal.
+                     * If yes, update the result and remove the neighbors after it.
+                     */
                     else if (map.goal(next)) {
-                        t = next.f;
+                        t = map.f(next);
                         result = getPath(next);
                         removeFromIndex = i;
+                        break;
                     }
                 }
+                // Remove irrelevant neighbors, then reverse the list and insert into the stack:
                 if (removeFromIndex != -1) {
                     neighbors.subList(removeFromIndex, neighbors.size()).clear();
                 }
@@ -72,15 +95,23 @@ public class DFBnB extends IterativeDepthFirstSearchAlgo{
         return result;
     }
 
+    /**
+     * Helper method - create list of neighbor states, sorted by f-value and "old-first" or "new-first".
+     *
+     * @param n Current node.
+     * @return A sorted list of the relevant neighbors.
+     */
     protected ArrayList<InOutNode> neighbors(InOutNode n){
         ArrayList<InOutNode> neighbors = new ArrayList<>();
         if (clockwise){
             for (int[] dir : Ex1.clockwiseOrder){
+                // Check validity of the move and get the results after the move:
                 int[] checkNext = map.checkMove(n, dir);
-                if (checkNext != null) {
+                if (checkNext != null) {  // If the move is legal:
+                    // Parse the next state: next x,y values, etc.
                     int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + n.getCost();
                     char ch = (char) checkNext[3];
-                    neighbors.add(new InOutNode(nx, ny, cost, map.f(nx, ny, cost), ch, dir, n));
+                    neighbors.add(new InOutNode(nx, ny, cost, ch, dir, n));  // And add the node.
                 }
             }
         }
@@ -90,7 +121,7 @@ public class DFBnB extends IterativeDepthFirstSearchAlgo{
                 if (checkNext != null) {
                     int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + n.getCost();
                     char ch = (char) checkNext[3];
-                    neighbors.add(new InOutNode(nx, ny, cost, map.f(nx, ny, cost), ch, dir, n));
+                    neighbors.add(new InOutNode(nx, ny, cost, ch, dir, n));
                 }
             }
         }
@@ -98,6 +129,12 @@ public class DFBnB extends IterativeDepthFirstSearchAlgo{
         return neighbors;
     }
 
+    /**
+     * Adds node to open list (stack and hashMap).
+     * Updates maxSizeOfOpenList.
+     *
+     * @param n Node to add.
+     */
     @Override
     protected void addToOpenList(Node n) {
         stack.push((InOutNode) n);
@@ -105,6 +142,9 @@ public class DFBnB extends IterativeDepthFirstSearchAlgo{
         maxSizeOfOpenList = Math.max(maxSizeOfOpenList, openList.size());
     }
 
+    /**
+     * Prints open list - iterates over the stack.
+     */
     @Override
     protected void printOpenList(){
         System.out.print(stack.size());
