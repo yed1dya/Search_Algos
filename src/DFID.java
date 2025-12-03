@@ -36,9 +36,11 @@ public class DFID extends SearchAlgo {
      */
     @Override
     protected String findPath() {
-        for (int depth = 1; depth < maxDepth; depth++) {
+        System.out.println("max depth:" + maxDepth);
+        for (int limit = 1; limit < maxDepth; limit++) {
+            System.out.println("current depth limit: " + limit);
             openList = new HashMap<>();  // Reset the open list between rounds of DFS.
-            String result = limitedDFS(start, depth);  // Run DFS and get the result.
+            String result = limitedDFS(start, limit);  // Run DFS and get the result.
             // If DFS found the goal before cutoff, that's the shortest path:
             if (!result.equals("cutoff")) return result;
         }

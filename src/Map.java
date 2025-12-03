@@ -1,16 +1,73 @@
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+
 public class Map {
 
     private char[][] board;
-    private int[][] tunnels;
+    private int[][] tunnelPairs;
     private int[] charCounts;
     private int goalX, goalY;
+    private HashMap<Point, Integer> distToGoal;
+    private List<Point> tunnels = new ArrayList<>();
 
-    protected Map(char[][] board, int[][] tunnels, int goalX, int goalY, int[] charCounts){
-        this.board = board; this.tunnels = tunnels; this.goalX = goalX; this.goalY = goalY;
+    protected Map(char[][] board, int[][] tunnels, int startX, int startY, int goalX, int goalY, int[] charCounts) {
+        this.board = board; this.tunnelPairs = tunnels; this.goalX = goalX; this.goalY = goalY;
         this.charCounts = charCounts;
+        Point start = new Point(startX, startY), goal = new Point(goalX, goalY);
+        tunnelDijkstra(start, goal);
     }
 
-    protected int[] charCounts(){
+    /**
+     * Finds the shortest distance from every tunnel entrance to the goal,
+     * by chebyshev distance and using tunnels.
+     * The distance between tunnel entrance pairs is min(chebyshev, 2).
+     * The distance between entrances to different tunnels is the chebyshev distance (initially).
+     * Runs Dijkstra from goal on the set of tunnels, start, and goal.
+     * Shortest distances are saved in 'distToGoal'.
+     *
+     * @param start Start location.
+     * @param goal Goal location.
+     */
+    private void tunnelDijkstra(Point start, Point goal) {
+        // Initialize variables and create nodes:
+        List<Point> points = new ArrayList<>();
+        HashMap<Point, Integer> tunnelNumber = new HashMap<>();
+        distToGoal = new HashMap<>();
+        for (int i = 0; i < tunnelPairs.length; i++) {
+            int[] t = tunnelPairs[i];
+            if (t[0] == -1) continue;
+            Point p1 = new Point(t[0], t[1]), p2 = new Point(t[2], t[3]);
+            points.add(p1); points.add(p2);
+            tunnelNumber.put(p1, i); tunnelNumber.put(p2, i);
+        }
+        tunnels.addAll(points);
+        points.add(start); points.add(goal);
+        // Run Dijkstra:
+        PriorityQueue<Point> pq = new PriorityQueue<>(Comparator.comparingInt(distToGoal::get));
+        for (Point p : points) {
+            distToGoal.put(p, Integer.MAX_VALUE);
+        }
+        distToGoal.put(goal, 0);
+        pq.add(goal);
+        while (!pq.isEmpty()) {
+            Point current = pq.poll();
+            int cost = distToGoal.get(current);
+            for (Point p : points) {
+                if (p.equals(current)) continue;
+                int weight = chebyshev(p, current);
+                if (Objects.equals(tunnelNumber.get(p), tunnelNumber.get(current))) {
+                    weight = Math.min(weight, 2);
+                }
+                if (distToGoal.get(p) > cost + weight){  // Relax edge
+                    distToGoal.put(p, cost + weight);
+                    pq.add(p);
+                }
+            }
+        }
+    }
+
+    protected int[] charCounts() {
         return this.charCounts;
     }
 
@@ -20,11 +77,11 @@ public class Map {
      * @param ch Query char.
      * @return The number of times ch appears in the map.
      */
-    protected int charCount(char ch){
-        if (ch >= '0' && ch <= '9'){
+    protected int charCount(char ch) {
+        if (ch >= '0' && ch <= '9') {
             return charCounts[ch - '0'];
         }
-        return switch (ch){
+        return switch (ch) {
             case '-' -> charCounts[10];
             case '*' -> charCounts[11];
             case '~' -> charCounts[12];
@@ -41,16 +98,27 @@ public class Map {
      * @param n A node to check.
      * @return True iff the node is the location of the goal.
      */
-    protected boolean goal(Node n){
+    protected boolean goal(Node n) {
         return goal(n.x(), n.y());
     }
 
-    protected boolean goal(int x, int y){
+    protected boolean goal(int x, int y) {
         return x == goalX && y == goalY;
     }
 
     /**
-     * Helper function - Chebyshev distance.
+     * Chebyshev distance between point A and point B.
+     *
+     * @param a Point A.
+     * @param b Point B.
+     * @return The Chebyshev distance between the points.
+     */
+    private int chebyshev(Point a, Point b) {
+        return chebyshev(a.x, a.y, b.x, b.y);
+    }
+
+    /**
+     * Chebyshev distance from (x1, y1) to (x2, y2).
      *
      * @param x1 x-coordinate of point 1.
      * @param y1 y-coordinate of point 1.
@@ -63,41 +131,26 @@ public class Map {
     }
 
     /**
-     * Helper function - "tunnel distance".
-     * Iterates over all tunnel entrances,
-     * returns the chebyshev distance from x,y to the closest one.
-     *
-     * @param x x-coordinate.
-     * @param y y-coordinate.
-     * @return The chebyshev distance from point to the closest tunnel
-     */
-    private int tunnelDistance(int x, int y){
-        int distance = Integer.MAX_VALUE;
-        for (int[] tunnel : tunnels){
-            int closestTunnel = Math.min(chebyshev(x, y, tunnel[0], tunnel[1]),
-                    chebyshev(x, y, tunnel[2], tunnel[3]));
-            distance = Math.min(distance, closestTunnel);
-        }
-        return distance;
-    }
-
-    /**
      * The heuristic function.
      * If the location is the goal, heuristic is 0.
      * Else, the minimum of:
      * chebyshev distance to goal + 4
-     * (because the last step will always cost 5, thr price for stepping onto G),
+     * (because the last step will always cost 5, the price for stepping onto G),
      * and
-     * chebyshev distance to the closest tunnel entrance + 2 + 5
-     * (because the cost of using the tunnel is 2, plus the cost of the last step).
+     * chebyshev distance to the closest tunnel entrance + heuristic from tunnel to goal + 4.
      *
      * @param x x-coordinate.
      * @param y y-coordinate.
      * @return The heuristic of the given location.
      */
-    protected int heuristic(int x, int y){
+    protected int heuristic(int x, int y) {
         if (goal(x, y)) return 0;
-        return Math.min(chebyshev(x, y, goalX, goalY) + 4, tunnelDistance(x, y) + 7);
+        int costHeuristic = chebyshev(x, y, goalX, goalY);
+        for (Point t : tunnels) {
+            int tempCost = chebyshev(x, y, t.x, t.y) + distToGoal.get(t);
+            costHeuristic = Math.min(costHeuristic, tempCost);
+        }
+        return costHeuristic + 4;
     }
 
     /**
@@ -106,7 +159,7 @@ public class Map {
      * @param n A node.
      * @return The f(n) value of n.
      */
-    protected int f(Node n){
+    protected int f(Node n) {
         return f(n.x(), n.y(), n.getCost());
     }
 
@@ -118,15 +171,15 @@ public class Map {
      * @param cost Current cost.
      * @return The f(n) value of the location with the given cost.
      */
-    protected int f(int x, int y, int cost){
+    protected int f(int x, int y, int cost) {
         return cost + heuristic(x, y);
     }
 
-    protected int height(){
+    protected int height() {
         return this.board.length;
     }
 
-    protected int width(){
+    protected int width() {
         return this.board[0].length;
     }
 
@@ -138,9 +191,9 @@ public class Map {
      * @param y y-coordinate of space.
      * @return The cost of that space.
      */
-    protected int cost(int x, int y, boolean diagonal, boolean supplied){
+    protected int cost(int x, int y, boolean diagonal, boolean supplied) {
         char ch = board[y][x];
-        switch (ch){
+        switch (ch) {
             case '#': return -1;
             case '-', '*', 'S': return 1;
             case '^': return diagonal ? 10 : 5;
@@ -163,11 +216,11 @@ public class Map {
      * @param previousDir The previous direction.
      * @return [new x, new y, cost of move, tunnel number, supplied] if valid, else null.
      */
-    private int[] enterTunnel(int x, int y, int[] previousDir, int supplied){
+    private int[] enterTunnel(int x, int y, int[] previousDir, int supplied) {
         char ch = board[y][x];
         if (ch >= '0' && ch <= '9' && previousDir.length != 0) {
             int number = Integer.parseInt(String.valueOf(ch));
-            int[] pair = tunnels[number];
+            int[] pair = tunnelPairs[number];
             if (x == pair[0] && y == pair[1]) {
                 return new int[]{pair[2], pair[3], 2, ch, supplied};
             }
@@ -186,7 +239,7 @@ public class Map {
      *
      * @return An int array [new x, new y, cost of move, char in next spot, supplied] if valid, else null.
      */
-    protected int[] checkMove(Node current, int[] dir){
+    protected int[] checkMove(Node current, int[] dir) {
         int x = current.x(), y = current.y();
         int[] previousDir = current.getDir();
         int supplied = current.isSupplied() ? 1 : 0;
@@ -194,7 +247,7 @@ public class Map {
         x += dir[0]; y += dir[1];
         if (x < 0 || y < 0 || y >= board.length || x >= board[0].length) return null;
         char ch = board[y][x];
-        if ((ch != '*' || supplied == 1) && previousDir.length != 0){
+        if ((ch != '*' || supplied == 1) && previousDir.length != 0) {
             int xMoved = previousDir[0] + dir[0], yMoved = previousDir[1] + dir[1];
             if (xMoved == 0 && yMoved == 0) return null;
         }

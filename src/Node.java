@@ -78,7 +78,6 @@ public class Node {
         StringBuilder path = new StringBuilder();
         Node n = this;
         while (n.parent != null){
-            System.out.print(n.ch + " ");
             path.insert(0,"-" + dirName(n.dir));
             n = n.parent;
         }

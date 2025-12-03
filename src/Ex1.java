@@ -8,14 +8,16 @@ public class Ex1 {
      * Clockwise = Right, Right-Down, Down, Left-Down, Left, Left-Up, Up, Right-Up, Enter-tunnel.
      * Counter-clockwise = Right, Right-Up, Up, Left-Up, Left, Left-Down, Down, Right-Down, Enter-tunnel.
      */
-    protected static int[][] clockwiseOrder = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {}},
+    protected static int[][]
+            clockwiseOrder = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {}},
             counterClockwiseOrder = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {}};
+    private static final String INPUT = "input.txt", OUTPUT = "output.txt";
 
     public static void main(String[] args) {
-        runAlgo();
+        runAlgo(INPUT, OUTPUT);
     }
 
-    protected static void runAlgo(){
+    protected static void runAlgo(String inputFileName, String outputFileName){
         // Initialize variables and parse file:
         int rows, cols, startX = -1, startY = -1, goalX = -1, goalY = -1;
         boolean oldFirst = false, clockwise, withTime, withOpen;
@@ -24,7 +26,7 @@ public class Ex1 {
         String algoName;
         Node start;
         Map map;
-        try(BufferedReader reader = new BufferedReader(new FileReader("AStar clockwise new-first ocean.txt"))) {
+        try(BufferedReader reader = new BufferedReader(new FileReader(inputFileName))) {
             algoName = reader.readLine();  // Required algorithm
             String[] lineArr = reader.readLine().split(" ");
             clockwise = lineArr[0].equals("clockwise");
@@ -116,7 +118,7 @@ public class Ex1 {
                 System.exit(1);
             }
 
-            map = new Map(board, tunnels, goalX, goalY, charCounts);
+            map = new Map(board, tunnels, startX, startY, goalX, goalY, charCounts);
             start = new Node(startX, startY, 0, 'S', new int[]{0, 0}, null);
             SearchAlgo algo = switch (algoName) {
                 case "BFS" -> new BFS(clockwise, withTime, withOpen, map, start);
@@ -142,7 +144,7 @@ public class Ex1 {
             }
 
             // Write output to file:
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
                 writer.write(output.toString());
             } catch (IOException e) {
                 System.err.println("Error writing to file: " + e.getMessage());

@@ -22,7 +22,6 @@ public abstract class IterativeDepthFirstSearchAlgo extends SearchAlgo{
         int[] counts = map.charCounts();
         int totalSum = 0;
         for (int i = 0; i < counts.length - 1; i++) {
-            System.out.println(i);
             int cost = 1;
             if (i == 12) cost = 3;
             if (i == 13) cost = 10;
