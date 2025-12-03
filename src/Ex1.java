@@ -142,6 +142,7 @@ public class Ex1 {
                 String formattedTime = String.format("%.3f", durationSeconds);
                 output.append('\n').append(formattedTime).append(" seconds");
             }
+            Node.resetNumberOfNodesCreated();
 
             // Write output to file:
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {

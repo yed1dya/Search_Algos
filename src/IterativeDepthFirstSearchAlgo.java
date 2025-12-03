@@ -16,7 +16,7 @@ public abstract class IterativeDepthFirstSearchAlgo extends SearchAlgo{
      * We add 1 for S and 5 for G.
      *
      * @param map The map.
-     * @return Max potential f-value on the map.
+     * @return Max possible f-value on the map.
      */
     protected int maxF(Map map){
         int[] counts = map.charCounts();

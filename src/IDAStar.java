@@ -1,7 +1,5 @@
 public class IDAStar extends IterativeDepthFirstSearchAlgo {
 
-    private int t, minF;
-
     /**
      * Constructor.
      *
@@ -28,11 +26,12 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
      */
     @Override
     protected String findPath() {
-        t = map.heuristic(start.x(), start.y());  // Equal to f(start), because cost(start) == 0.
-        while (t < maxF){
-            minF = maxF;
-            start = new InOutNode(start);
-            addToOpenList(start);
+        int previousT = -1;
+        int t = map.heuristic(start.x(), start.y());  // Equal to f(start), because cost(start) == 0.
+        while (t <= maxF && t != previousT){
+            previousT = t;
+            int minF = maxF;
+            addToOpenList(new InOutNode(start));
             while (!stack.empty()){
                 if (withOpen) printOpenList();
                 InOutNode current = stack.pop();
@@ -40,47 +39,31 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
                 else {
                     current.setOut();
                     stack.push(current);
-                    if (clockwise) {
-                        for (int[] dir : Ex1.clockwiseOrder) {
-                            String path = checkDir(current, dir);
-                            if (path != null) return path;
-                        }
-                    } else {
-                        for (int[] dir : Ex1.counterClockwiseOrder) {
-                            String path = checkDir(current, dir);
-                            if (path != null) return path;
+                    int[][] directions = clockwise ? Ex1.clockwiseOrder : Ex1.counterClockwiseOrder;
+                    for (int[] dir : directions) {
+                        Node next = map.move(current, dir);
+                        if (next == null) continue;
+                        int nextF = map.f(next);
+                        if (nextF > t) minF = Math.min(minF, nextF);
+                        else {
+                            String nextID = next.ID();
+                            if (openList.containsKey(nextID)) {
+                                InOutNode oldNext = ((InOutNode) openList.get(nextID));
+                                if (!oldNext.isOut() && map.f(oldNext) > nextF){
+                                    openList.remove(nextID);
+                                    stack.remove(oldNext);
+                                }
+                            }
+                            if (map.goal(next)) return getPath(next);
+                            addToOpenList(next);
                         }
                     }
                 }
             }
             t = minF;
+            System.out.println(t);
         }
         return "no path";
-    }
-
-    protected String checkDir(InOutNode current, int[] dir){
-        int[] checkNext = map.checkMove(current, dir);
-        if (checkNext == null) return null;
-        int x = checkNext[0], y = checkNext[1], cost = checkNext[2] + current.getCost();
-        boolean supplied = checkNext[4] == 1;
-        int nextF = map.f(x, y, cost);
-        if (nextF > t) {
-            minF = Math.min(minF, nextF);
-            return null;
-        }
-        String key = x + "," + y + "," + supplied;
-        if (openList.containsKey(key)){
-            InOutNode oldNext = ((InOutNode) openList.get(key));
-            if (!oldNext.isOut() && map.f(oldNext) > nextF){
-                openList.remove(key);
-                stack.remove(oldNext);
-            }
-            else return null;
-        }
-        InOutNode next = new InOutNode(x, y, cost, (char) checkNext[3], dir, current);
-        if (map.goal(next)) return getPath(next);
-        addToOpenList(next);
-        return null;
     }
 
     @Override
@@ -94,7 +77,7 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
     protected void printOpenList(){
         System.out.print(stack.size());
         for (Node n : stack){
-            System.out.print("  " + n.toString());
+            System.out.print("  " + n.toString(map));
         }
         System.out.println();
     }

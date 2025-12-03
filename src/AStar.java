@@ -43,52 +43,31 @@ public class AStar extends BreadthFirstSearchAlgo {
                 return getPath(current);  // Return the path to the node
             }
             addToClosedList(current);
-            if (clockwise) {  // Options for CW or CCW order of expansion:
-                // Check the option of moving in each direction:
-                for (int[] dir : Ex1.clockwiseOrder) checkDir(current, dir);
-            } else {
-                for (int[] dir : Ex1.counterClockwiseOrder) checkDir(current, dir);
+            int[][] directions = clockwise ? Ex1.clockwiseOrder : Ex1.counterClockwiseOrder;
+            for (int[] dir : directions) {
+                Node next = map.move(current, dir);
+                if (next == null) continue;
+                if (notInClosedList(next) && !inOpenList(next)){
+                    addToOpenList(next);
+                }
+                else if (inOpenList(next)){
+                    Node oldNext = getFromOpenList(next.ID());
+                    if (map.f(next) < map.f(oldNext)){
+                        /*
+                         * No need to create a new node: just update the attributes.
+                         * We do need to remove and add the node, so that the PQ gets re-sorted.
+                         */
+                        priorityQueue.remove(oldNext);
+                        oldNext.setParent(current);
+                        oldNext.setCost(next.getCost());
+                        oldNext.setDir(dir);
+                        oldNext.setSupplied(next.isSupplied());
+                        priorityQueue.add(oldNext);
+                    }
+                }
             }
         }
         return "no path";
-    }
-
-    /**
-     * Helper method, preforms the check and move in given direction from current node.
-     * If next node is already in the closed list, skip it.
-     * Else, if next already appears in open list (call this one "oldNext"),
-     * then compare cost to newNext and keep the cheaper one.
-     *
-     * @param current Current node.
-     * @param dir Direction to move in.
-     */
-    protected void checkDir(Node current, int[] dir){
-        // Check validity of the move and get the results after the move:
-        int[] checkNext = map.checkMove(current, dir);
-        if (checkNext == null) return;  // If the move is illegal.
-        // Parse the next state: next x,y values, etc.
-        int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + current.getCost();
-        char ch = (char)checkNext[3];
-        boolean supplied = checkNext[4] == 1;
-        if (notInClosedList(nx, ny, supplied) && !inOpenList(nx, ny, supplied)){
-            Node next = new Node(nx, ny, cost, ch, dir, current);
-            addToOpenList(next);
-        }
-        else if (inOpenList(nx, ny, supplied)){
-            Node oldNext = getFromOpenList(nx, ny, supplied);
-            if (map.f(nx, ny, cost) < map.f(oldNext)){
-                /*
-                 * No need to create a new node: just update the attributes.
-                 * We do need to remove and add the node, so that the PQ gets re-sorted.
-                 */
-                priorityQueue.remove(oldNext);
-                oldNext.setParent(current);
-                oldNext.setCost(cost);
-                oldNext.setDir(dir);
-                oldNext.setSupplied(supplied);
-                priorityQueue.add(oldNext);
-            }
-        }
     }
 
     /**
@@ -119,14 +98,12 @@ public class AStar extends BreadthFirstSearchAlgo {
     }
 
     /**
-     * Get a node from the open list, by x,y coordinates.
+     * Get a node from the open list, by node ID.
      *
-     * @param x x-coordinate.
-     * @param y y-coordinate.
      * @return The requested node.
      */
-    protected Node getFromOpenList(int x, int y, boolean supplied){
-        return openList.get(x + "," + y + "," + supplied);
+    protected Node getFromOpenList(String ID){
+        return openList.get(ID);
     }
 
     /**
@@ -138,7 +115,7 @@ public class AStar extends BreadthFirstSearchAlgo {
         PriorityQueue<Node> tempPQ = new PriorityQueue<>(priorityQueue);
         System.out.print(tempPQ.size());
         while (!tempPQ.isEmpty()) {
-            System.out.print("  " + tempPQ.poll().toString());
+            System.out.print("  " + tempPQ.poll().toString(map));
         }
         System.out.println();
     }

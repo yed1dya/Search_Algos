@@ -36,16 +36,12 @@ public class BFS extends BreadthFirstSearchAlgo {
             Node current = removeHeadFromOpenList();
             if (current == null) return "no path";  // Safeguard.
             addToClosedList(current);
-            if (clockwise) {  // Options for CW or CCW order of expansion:
-                for (int[] dir : Ex1.clockwiseOrder) {
-                    // Go to the next state. If it is the goal, the path will be returned.
-                    String path = expandTo(current, dir);
-                    if (path != null) return path;
-                }
-            } else {
-                for (int[] dir : Ex1.counterClockwiseOrder) {
-                    String path = expandTo(current, dir);
-                    if (path != null) return path;
+            int[][] directions = clockwise ? Ex1.clockwiseOrder : Ex1.counterClockwiseOrder;
+            for (int[] dir : directions) {
+                Node next = map.move(current, dir);
+                if (next != null && notInClosedList(next) && !inOpenList(next)){
+                    if (map.goal(next)) return getPath(next);
+                    addToOpenList(next);
                 }
             }
         }
@@ -53,37 +49,11 @@ public class BFS extends BreadthFirstSearchAlgo {
     }
 
     /**
-     * Expand node in given direction.
-     * Checks that the move is legal and creates the node.
-     * Checks if the created nod is the goal.
-     *
-     * @param n Node to expand.
-     * @param dir Direction to expand in.
-     * @return Path to goal, if found. Else, null.
-     */
-    protected String expandTo(Node n, int[] dir){
-        // Check validity of the move and get the results after the move:
-        int[] checkNext = map.checkMove(n, dir);
-        if (checkNext == null) return null;  // If the move is illegal.
-        // Parse the next state: next x,y values, etc.
-        int x = checkNext[0], y = checkNext[1], cost = checkNext[2];
-        char ch = (char)checkNext[3];
-        // If the node is unvisited:
-        if (notInClosedList(x, y, n.isSupplied()) && !inOpenList(x, y, n.isSupplied())){
-            cost += n.getCost();
-            Node next = new Node(x, y, cost, ch, dir, n);
-            if (map.goal(next)) return getPath(next);
-            else addToOpenList(next);
-        }
-        return null;
-    }
-
-    /**
      * Prints open list - iterates over queue.
      */
     @Override
     protected void printOpenList(){
-        System.out.print(queue.size());
+        System.out.print("\n"+queue.size());
         for (Node n : queue){
             System.out.print("  " + n.toString());
         }

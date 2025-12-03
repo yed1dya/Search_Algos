@@ -10,6 +10,7 @@ public class Map {
     private int goalX, goalY;
     private HashMap<Point, Integer> distToGoal;
     private List<Point> tunnels = new ArrayList<>();
+    protected static final int[] ENTER = {};
 
     protected Map(char[][] board, int[][] tunnels, int startX, int startY, int goalX, int goalY, int[] charCounts) {
         this.board = board; this.tunnelPairs = tunnels; this.goalX = goalX; this.goalY = goalY;
@@ -69,26 +70,6 @@ public class Map {
 
     protected int[] charCounts() {
         return this.charCounts;
-    }
-
-    /**
-     * Returns the count of given char in the map.
-     *
-     * @param ch Query char.
-     * @return The number of times ch appears in the map.
-     */
-    protected int charCount(char ch) {
-        if (ch >= '0' && ch <= '9') {
-            return charCounts[ch - '0'];
-        }
-        return switch (ch) {
-            case '-' -> charCounts[10];
-            case '*' -> charCounts[11];
-            case '~' -> charCounts[12];
-            case '^' -> charCounts[13];
-            case '#' -> charCounts[14];
-            default -> -1;
-        };
     }
 
     /**
@@ -157,30 +138,10 @@ public class Map {
      * The 'f' function for the informed searches.
      *
      * @param n A node.
-     * @return The f(n) value of n.
+     * @return The f(n) = g(n) + h(n) value of n.
      */
     protected int f(Node n) {
-        return f(n.x(), n.y(), n.getCost());
-    }
-
-    /**
-     * The 'f' function for the informed searches.
-     *
-     * @param x x-coordinate
-     * @param y y-coordinate
-     * @param cost Current cost.
-     * @return The f(n) value of the location with the given cost.
-     */
-    protected int f(int x, int y, int cost) {
-        return cost + heuristic(x, y);
-    }
-
-    protected int height() {
-        return this.board.length;
-    }
-
-    protected int width() {
-        return this.board[0].length;
+        return n.getCost() + heuristic(n.x(), n.y());
     }
 
     /**
@@ -189,7 +150,7 @@ public class Map {
      *
      * @param x x-coordinate of space.
      * @param y y-coordinate of space.
-     * @return The cost of that space.
+     * @return The cost of moving to that space if move is legal, else -1.
      */
     protected int cost(int x, int y, boolean diagonal, boolean supplied) {
         char ch = board[y][x];
@@ -211,22 +172,22 @@ public class Map {
      * Helper function for "Ent" direction.
      * Checks if space is a tunnel, and finds the other side.
      *
-     * @param x x-coordinate.
-     * @param y y-coordinate.
-     * @param previousDir The previous direction.
-     * @return [new x, new y, cost of move, tunnel number, supplied] if valid, else null.
+     * @param current The node we're moving from.
      */
-    private int[] enterTunnel(int x, int y, int[] previousDir, int supplied) {
+    private Node enterTunnel(Node current) {
+        int x = current.x(), y = current.y();
+        int[] previousDir = current.getDir();
         char ch = board[y][x];
         if (ch >= '0' && ch <= '9' && previousDir.length != 0) {
             int number = Integer.parseInt(String.valueOf(ch));
             int[] pair = tunnelPairs[number];
             if (x == pair[0] && y == pair[1]) {
-                return new int[]{pair[2], pair[3], 2, ch, supplied};
+                x = pair[2]; y = pair[3];
             }
-            if (x == pair[2] && y == pair[3]) {
-                return new int[]{pair[0], pair[1], 2, ch, supplied};
+            else if (x == pair[2] && y == pair[3]) {
+                x = pair[0]; y = pair[1];
             }
+            return new Node(x, y, current.getCost() + 2, ch, ENTER, current);
         }
         return null;
     }
@@ -239,22 +200,27 @@ public class Map {
      *
      * @return An int array [new x, new y, cost of move, char in next spot, supplied] if valid, else null.
      */
-    protected int[] checkMove(Node current, int[] dir) {
+    protected Node move(Node current, int[] dir) {
+        if (dir.length == 0) return enterTunnel(current);  // If direction is 'Ent'
         int x = current.x(), y = current.y();
         int[] previousDir = current.getDir();
-        int supplied = current.isSupplied() ? 1 : 0;
-        if (dir.length == 0) return enterTunnel(x, y, previousDir, supplied);
-        x += dir[0]; y += dir[1];
-        if (x < 0 || y < 0 || y >= board.length || x >= board[0].length) return null;
-        char ch = board[y][x];
-        if ((ch != '*' || supplied == 1) && previousDir.length != 0) {
-            int xMoved = previousDir[0] + dir[0], yMoved = previousDir[1] + dir[1];
-            if (xMoved == 0 && yMoved == 0) return null;
-        }
-        boolean diagonal = dir[0] != 0 && dir[1] != 0;
-        int cost = cost(x, y, diagonal, supplied == 1);
-        if (ch != '#' && (supplied == 1 || ch != '~') && cost != -1) {
-            return new int[]{x, y, cost, ch, supplied};
+        boolean supplied = current.isSupplied();
+        x += dir[0]; y += dir[1];  // Update coordinates
+        // Verify that new coordinates are within borders:
+        if (x >= 0 && y >= 0 & y < board.length && x < board[0].length) {
+            char ch = board[y][x];
+            // Verify that target location is not a wall or '~' without supplies:
+            if (ch != '#' && (supplied || ch != '~')) {
+                // Verify that target location is not an immediate backtrack (excluding supplying):
+                if ((ch == '*' && !supplied) || (previousDir.length != 0 &&
+                        !(previousDir[0] + dir[0] == 0 && previousDir[1] + dir[1] == 0))) {
+                    boolean diagonal = dir[0] != 0 && dir[1] != 0;
+                    int moveCost = cost(x, y, diagonal, supplied);
+                    if (moveCost != -1){
+                        return new Node(x, y, moveCost + current.getCost(), ch, dir, current);
+                    }
+                }
+            }
         }
         return null;
     }

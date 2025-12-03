@@ -26,12 +26,9 @@ public abstract class BreadthFirstSearchAlgo extends SearchAlgo {
     /**
      * Check if location was already visited.
      *
-     * @param x x-coordinate.
-     * @param y y-coordinate.
-     * @param supplied whether node is after getting supplies.
      * @return True iff location (x,y) is NOT in the closed list.
      */
-    protected boolean notInClosedList(int x, int y, boolean supplied){
-        return !closedList.containsKey(x + "," + y + "," + supplied);
+    protected boolean notInClosedList(Node n){
+        return !closedList.containsKey(n.ID());
     }
 }

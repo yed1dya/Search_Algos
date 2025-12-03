@@ -96,33 +96,18 @@ public class DFBnB extends IterativeDepthFirstSearchAlgo{
     }
 
     /**
-     * Helper method - create list of neighbor states, sorted by f-value and "old-first" or "new-first".
+     * Create list of neighbor states, sorted by f-value and "old-first" or "new-first".
      *
      * @param n Current node.
      * @return A sorted list of the relevant neighbors.
      */
     protected ArrayList<InOutNode> neighbors(InOutNode n){
         ArrayList<InOutNode> neighbors = new ArrayList<>();
-        if (clockwise){
-            for (int[] dir : Ex1.clockwiseOrder){
-                // Check validity of the move and get the results after the move:
-                int[] checkNext = map.checkMove(n, dir);
-                if (checkNext != null) {  // If the move is legal:
-                    // Parse the next state: next x,y values, etc.
-                    int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + n.getCost();
-                    char ch = (char) checkNext[3];
-                    neighbors.add(new InOutNode(nx, ny, cost, ch, dir, n));  // And add the node.
-                }
-            }
-        }
-        else {
-            for (int[] dir : Ex1.counterClockwiseOrder){
-                int[] checkNext = map.checkMove(n, dir);
-                if (checkNext != null) {
-                    int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + n.getCost();
-                    char ch = (char) checkNext[3];
-                    neighbors.add(new InOutNode(nx, ny, cost, ch, dir, n));
-                }
+        int[][] directions = clockwise ? Ex1.clockwiseOrder : Ex1.counterClockwiseOrder;
+        for (int[] dir : directions){
+            InOutNode next = (InOutNode) map.move(n, dir);
+            if (next != null) {  // If the move is legal:
+                neighbors.add(next);
             }
         }
         neighbors.sort(nodeCompare);
@@ -149,7 +134,7 @@ public class DFBnB extends IterativeDepthFirstSearchAlgo{
     protected void printOpenList(){
         System.out.print(stack.size());
         for (InOutNode n : stack){
-            System.out.print("  " + n.toString());
+            System.out.print("  " + n.toString(map));
         }
         System.out.println();
     }

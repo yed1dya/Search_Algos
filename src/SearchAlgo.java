@@ -40,18 +40,6 @@ public abstract class SearchAlgo {
      */
     protected abstract void printOpenList();
 
-    protected Node nextNode(Node current, int[] dir){
-        int[] checkNext = map.checkMove(current, dir);
-        if (checkNext == null) return null;
-        int nx = checkNext[0], ny = checkNext[1], cost = checkNext[2] + current.getCost();
-        char ch = (char)checkNext[3];
-        boolean supplied = checkNext[4] == 1;
-        if (!inOpenList(nx, ny, supplied)){
-            return new Node(nx, ny, cost, ch, dir, current);
-        }
-        return null;
-    }
-
     /**
      * Get the output from running the search algo.
      * (runs the algorithm).
@@ -70,13 +58,10 @@ public abstract class SearchAlgo {
     /**
      * Check if location is in the open list.
      *
-     * @param x x-coordinate.
-     * @param y y-coordinate.
-     * @param supplied whether node is after getting supplies.
      * @return True iff location (x,y) is in the open list.
      */
-    protected boolean inOpenList(int x, int y, boolean supplied){
-        return openList.containsKey(x + "," + y + "," + supplied);
+    protected boolean inOpenList(Node n){
+        return openList.containsKey(n.ID());
     }
 
     /**

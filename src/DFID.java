@@ -2,8 +2,6 @@ import java.util.HashMap;
 
 public class DFID extends SearchAlgo {
 
-    private int maxDepth;
-
     /**
      * Constructor.
      *
@@ -16,16 +14,6 @@ public class DFID extends SearchAlgo {
     protected DFID(boolean clockwise, boolean withTime, boolean withOpen, Map map, Node start){
         this.clockwise = clockwise; this.withTime = withTime; this.withOpen = withOpen;
         this.map = map; this.start = start;
-        int height = map.height(), width = map.width();
-        /*
-         * If we walk on all the tiles, we will definitely reach the goal.
-         * But in order to walk on all of them, we might need to get supplies.
-         * So in the most extreme case, we would walk on almost all the tiles to get supplies,
-         * and then again to the goal. Like in this case:
-         * G~S^^^^^*
-         * We can't walk on tiles that are '#', and we will only walk on tiles that are '~' once.
-         */
-        maxDepth = ((height * width - map.charCount('#')) * 2) - map.charCount('~');
     }
 
     /**
@@ -36,9 +24,7 @@ public class DFID extends SearchAlgo {
      */
     @Override
     protected String findPath() {
-        System.out.println("max depth:" + maxDepth);
-        for (int limit = 1; limit < maxDepth; limit++) {
-            System.out.println("current depth limit: " + limit);
+        for (int limit = 1; limit < Integer.MAX_VALUE; limit++) {
             openList = new HashMap<>();  // Reset the open list between rounds of DFS.
             String result = limitedDFS(start, limit);  // Run DFS and get the result.
             // If DFS found the goal before cutoff, that's the shortest path:
@@ -64,28 +50,23 @@ public class DFID extends SearchAlgo {
         // Else, expand the current node:
         addToOpenList(current);
         boolean cutoff = false;
-        if (clockwise) {
-            for (int[] dir : Ex1.clockwiseOrder) {
-                Node next = nextNode(current, dir);
-                if (next != null) {
-                    // If next node is valid, recurse from it:
-                    String result = limitedDFS(next, limit - 1);
-                    // If the path from that node was cut off, we can ignore that option:
-                    if (result.equals("cutoff")) cutoff = true;
-                    // If the result isn't "cutoff" or "fail", it's a path:
-                    else if (!result.equals("fail")) return result;
-                }
-            }
-        } else {
-            for (int[] dir : Ex1.counterClockwiseOrder) {
-                Node next = nextNode(current, dir);
-                if (next != null) {
-                    String result = limitedDFS(next, limit - 1);
-                    if (result.equals("cutoff")) cutoff = true;
-                    else if (!result.equals("fail")) return result;
-                }
+        int[][] directions = clockwise ? Ex1.clockwiseOrder : Ex1.counterClockwiseOrder;
+        for (int[] dir : directions) {
+            Node next = map.move(current, dir);
+            if (next != null) {
+                // If next node is valid, recurse from it:
+                String result = limitedDFS(next, limit - 1);
+                // If the path from that node was cut off, we can ignore that option:
+                if (result.equals("cutoff")) cutoff = true;
+                // If the result isn't "cutoff" or "fail", it's a path:
+                else if (!result.equals("fail")) return result;
             }
         }
+        /*
+         * If we finished the branch without finding a path, remove it.
+         * This frees up the space.
+         */
+        openList.remove(current.ID());
         if (withOpen) printOpenList();  // Option for debugging
         /*
          * Return status: "cutoff" if we stopped because of depth cutoff,

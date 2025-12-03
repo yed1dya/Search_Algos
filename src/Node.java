@@ -23,13 +23,18 @@ public class Node {
         this.dir = dir; this.ch = c;
         this.supplied = (c == '*' || (parent != null && parent.supplied));
         // Each state is defined by: x,y coordinates, and whether the robot is supplied at that point.
-        this.ID = x + "," + y + "," + this.supplied;
+        this.ID = ID(x, y, supplied);
         countCreatedNodes++;
         this.serialNumber = countCreatedNodes;
+        System.out.print("created " + this + "  ");
     }
 
     protected String ID(){
         return this.ID;
+    }
+
+    protected static String ID(int x, int y, boolean supplied){
+        return x + "," + y + "," + supplied;
     }
 
     protected int x(){
@@ -84,6 +89,10 @@ public class Node {
         return !path.isEmpty() ? path.substring(1) : "";
     }
 
+    protected static void resetNumberOfNodesCreated(){
+        countCreatedNodes = 0;
+    }
+
     protected static int numberOfNodesCreated(){
         return countCreatedNodes;
     }
@@ -98,7 +107,7 @@ public class Node {
      * @param dir Query direction.
      * @return The direction's name.
      */
-    private String dirName(int[] dir){
+    protected String dirName(int[] dir){
         if (dir.length == 0) return "Ent";
         StringBuilder sb = new StringBuilder();
         if (dir[0] == 1) sb.append("R");
@@ -106,6 +115,23 @@ public class Node {
         if (dir[1] == 1) sb.append("U");
         if (dir[1] == -1) sb.append("D");
         return sb.toString();
+    }
+
+    public String toString(Map map){
+        StringBuilder s = new StringBuilder("[" + this.x + "," + this.y);
+        s.append(" | ").append(this.ch);
+        s.append(" | ").append(this.cost);
+        s.append(" | ").append(map.f(this));
+        if (supplied) s.append(" | sup | ");
+        else s.append(" | not | ");
+        if (parent != null){
+            s.append(parent.x).append(",").append(parent.y).append(", ");
+            if (parent.supplied) s.append("sup");
+            else s.append("not");
+        }
+        else s.append("null");
+        s.append("]");
+        return s.toString();
     }
 
     @Override
