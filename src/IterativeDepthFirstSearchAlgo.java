@@ -1,8 +1,10 @@
+import java.util.HashSet;
 import java.util.Stack;
 
 public abstract class IterativeDepthFirstSearchAlgo extends SearchAlgo{
 
-    protected Stack<InOutNode> stack = new Stack<>();
+    private HashSet<Node> isOut = new HashSet<>();
+    protected Stack<Node> stack = new Stack<>();
     protected int maxF;
 
     /**
@@ -28,6 +30,19 @@ public abstract class IterativeDepthFirstSearchAlgo extends SearchAlgo{
             totalSum += counts[i] * cost;
         }
         return totalSum * 2 + 3;
+    }
+
+    /**
+     *
+     * @param node Node to check.
+     * @return true if out, false otherwise.
+     */
+    protected boolean isOut(Node node) {
+        return isOut.contains(node);
+    }
+
+    protected void setOut(Node node) {
+        isOut.add(node);
     }
 
 }

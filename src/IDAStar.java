@@ -31,13 +31,14 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
         while (t <= maxF && t != previousT){
             previousT = t;
             int minF = maxF;
-            addToOpenList(new InOutNode(start));
+            start.reset();      // Reset start - not supplied, no direction, no parent.
+            addToOpenList(start);
             while (!stack.empty()){
                 if (withOpen) printOpenList();
-                InOutNode current = stack.pop();
-                if (current.isOut()) openList.remove(current.ID());
+                Node current = stack.pop();
+                if (isOut(current)) openList.remove(current.ID());
                 else {
-                    current.setOut();
+                    setOut(current);
                     stack.push(current);
                     int[][] directions = clockwise ? Ex1.clockwiseOrder : Ex1.counterClockwiseOrder;
                     for (int[] dir : directions) {
@@ -48,8 +49,8 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
                         else {
                             String nextID = next.ID();
                             if (openList.containsKey(nextID)) {
-                                InOutNode oldNext = ((InOutNode) openList.get(nextID));
-                                if (!oldNext.isOut() && map.f(oldNext) > nextF){
+                                Node oldNext = openList.get(nextID);
+                                if (!isOut(oldNext) && map.f(oldNext) > nextF){
                                     openList.remove(nextID);
                                     stack.remove(oldNext);
                                 }
@@ -68,7 +69,7 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
 
     @Override
     protected void addToOpenList(Node n) {
-        stack.push((InOutNode) n);
+        stack.push(n);
         openList.put(n.ID(), n);
         maxSizeOfOpenList = Math.max(maxSizeOfOpenList, openList.size());
     }
@@ -77,7 +78,7 @@ public class IDAStar extends IterativeDepthFirstSearchAlgo {
     protected void printOpenList(){
         System.out.print(stack.size());
         for (Node n : stack){
-            System.out.print("  " + n.toString(map));
+            System.out.print("  " + n.toString(map) + isOut(n));
         }
         System.out.println();
     }

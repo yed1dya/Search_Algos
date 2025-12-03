@@ -18,6 +18,7 @@ public class Ex1 {
     }
 
     protected static void runAlgo(String inputFileName, String outputFileName){
+        Node.resetNumberOfNodesCreated();
         // Initialize variables and parse file:
         int rows, cols, startX = -1, startY = -1, goalX = -1, goalY = -1;
         boolean oldFirst = false, clockwise, withTime, withOpen;
@@ -120,12 +121,13 @@ public class Ex1 {
 
             map = new Map(board, tunnels, startX, startY, goalX, goalY, charCounts);
             start = new Node(startX, startY, 0, 'S', new int[]{0, 0}, null);
+            Node.resetNumberOfNodesCreated();
             SearchAlgo algo = switch (algoName) {
                 case "BFS" -> new BFS(clockwise, withTime, withOpen, map, start);
                 case "A*" -> new AStar(clockwise, withTime, withOpen, oldFirst, map, start);
                 case "DFID" -> new DFID(clockwise, withTime, withOpen, map, start);
                 case "IDA*" -> new IDAStar(clockwise, withTime, withOpen, map, start);
-                case "DFBnB" -> new DFBnB(clockwise, withTime, withOpen, oldFirst, map, new InOutNode(start));
+                case "DFBnB" -> new DFBnB(clockwise, withTime, withOpen, oldFirst, map, start);
                 default -> null;
             };
 
@@ -142,7 +144,6 @@ public class Ex1 {
                 String formattedTime = String.format("%.3f", durationSeconds);
                 output.append('\n').append(formattedTime).append(" seconds");
             }
-            Node.resetNumberOfNodesCreated();
 
             // Write output to file:
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {

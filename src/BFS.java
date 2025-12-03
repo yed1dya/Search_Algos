@@ -53,7 +53,7 @@ public class BFS extends BreadthFirstSearchAlgo {
      */
     @Override
     protected void printOpenList(){
-        System.out.print("\n"+queue.size());
+        System.out.print(queue.size());
         for (Node n : queue){
             System.out.print("  " + n.toString());
         }

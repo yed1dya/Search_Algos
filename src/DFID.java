@@ -25,6 +25,7 @@ public class DFID extends SearchAlgo {
     @Override
     protected String findPath() {
         for (int limit = 1; limit < Integer.MAX_VALUE; limit++) {
+            System.out.println("limit: " + limit);
             openList = new HashMap<>();  // Reset the open list between rounds of DFS.
             String result = limitedDFS(start, limit);  // Run DFS and get the result.
             // If DFS found the goal before cutoff, that's the shortest path:

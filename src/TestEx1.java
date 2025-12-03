@@ -25,10 +25,8 @@ public class TestEx1 {
 
         // Define a filter to accept only files ending with ".txt"
         FilenameFilter txtFilter = (_, name) -> name.endsWith(".txt")
-                && !name.contains("AStar") && name.contains("BFS") && !name.contains("DFBnB")
-                && !name.contains("DFID") && !name.contains("IDAStar")
-                && !name.contains("beach") && !name.contains("original")
-                && !name.contains("counter");
+                && !name.contains("AStar") && !name.contains("BFS") && !name.contains("DFBnB")
+                && name.contains("DFID") && !name.contains("IDAStar") && !name.contains("beach");
 
         // List the files that satisfy the filter
         File[] txtFiles = directory.listFiles(txtFilter);

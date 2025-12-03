@@ -53,16 +53,8 @@ public class AStar extends BreadthFirstSearchAlgo {
                 else if (inOpenList(next)){
                     Node oldNext = getFromOpenList(next.ID());
                     if (map.f(next) < map.f(oldNext)){
-                        /*
-                         * No need to create a new node: just update the attributes.
-                         * We do need to remove and add the node, so that the PQ gets re-sorted.
-                         */
                         priorityQueue.remove(oldNext);
-                        oldNext.setParent(current);
-                        oldNext.setCost(next.getCost());
-                        oldNext.setDir(dir);
-                        oldNext.setSupplied(next.isSupplied());
-                        priorityQueue.add(oldNext);
+                        priorityQueue.add(next);
                     }
                 }
             }

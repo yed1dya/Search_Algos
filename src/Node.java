@@ -26,7 +26,16 @@ public class Node {
         this.ID = ID(x, y, supplied);
         countCreatedNodes++;
         this.serialNumber = countCreatedNodes;
-        System.out.print("created " + this + "  ");
+    }
+
+    /**
+     * Reset a node. Used to reset start in between rounds of IDA*.
+     */
+    protected void reset(){
+        this.parent = null;
+        this.cost = 0;
+        this.dir = null;
+        this.supplied = false;
     }
 
     protected String ID(){
@@ -45,33 +54,16 @@ public class Node {
         return this.y;
     }
 
-    protected void setParent(Node parent) {
-        this.parent = parent;
-        this.supplied = parent.supplied;
-    }
-
     protected int getCost() {
         return cost;
-    }
-
-    protected void setCost(int cost) {
-        this.cost = cost;
     }
 
     protected int[] getDir(){
         return this.dir;
     }
 
-    protected void setDir(int[] dir){
-        this.dir = dir;
-    }
-
     protected boolean isSupplied(){
         return this.supplied;
-    }
-
-    protected void setSupplied(boolean supplied){
-        this.supplied = supplied;
     }
 
     /**

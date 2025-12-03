@@ -212,8 +212,10 @@ public class Map {
             // Verify that target location is not a wall or '~' without supplies:
             if (ch != '#' && (supplied || ch != '~')) {
                 // Verify that target location is not an immediate backtrack (excluding supplying):
-                if ((ch == '*' && !supplied) || (previousDir.length != 0 &&
-                        !(previousDir[0] + dir[0] == 0 && previousDir[1] + dir[1] == 0))) {
+                if ((ch == '*' && !supplied)            // The new space is a '*', and we weren't supplied before.
+                        || previousDir == null          // This is the first move.
+                        || previousDir.length == 0      // We just came from a tunnel (and we're mot going into it).
+                        || !(previousDir[0] + dir[0] == 0 && previousDir[1] + dir[1] == 0)) {
                     boolean diagonal = dir[0] != 0 && dir[1] != 0;
                     int moveCost = cost(x, y, diagonal, supplied);
                     if (moveCost != -1){
