@@ -88,11 +88,6 @@ public class DFID extends SearchAlgo {
         }
         if (withOpen) printOpenList();  // Option for debugging
         /*
-         * After we recursed from all children of the node (and didn't return a path),
-         * we can remove that node:
-         */
-        openList.remove(current.ID());
-        /*
          * Return status: "cutoff" if we stopped because of depth cutoff,
          * or "fail" if we ran out of where to go:
          */
